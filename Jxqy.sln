@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.30501.0
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.1145
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Jxqy", "Jxqy\Jxqy.csproj", "{F0C2E895-3D03-496B-A3A8-241A0ACAA7FD}"
 EndProject
@@ -48,11 +48,13 @@ Global
 		{B582C00C-00B0-43FC-9DAE-57CD7267E701}.Release|Mixed Platforms.ActiveCfg = Release|x86
 		{B582C00C-00B0-43FC-9DAE-57CD7267E701}.Release|x86.ActiveCfg = Release|x86
 		{823E410E-FD01-4AFD-A1B9-EA84D6CE155D}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{823E410E-FD01-4AFD-A1B9-EA84D6CE155D}.Debug|Any CPU.Build.0 = Debug|x86
 		{823E410E-FD01-4AFD-A1B9-EA84D6CE155D}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
 		{823E410E-FD01-4AFD-A1B9-EA84D6CE155D}.Debug|Mixed Platforms.Build.0 = Debug|x86
 		{823E410E-FD01-4AFD-A1B9-EA84D6CE155D}.Debug|x86.ActiveCfg = Debug|x86
 		{823E410E-FD01-4AFD-A1B9-EA84D6CE155D}.Debug|x86.Build.0 = Debug|x86
 		{823E410E-FD01-4AFD-A1B9-EA84D6CE155D}.Release|Any CPU.ActiveCfg = Release|x86
+		{823E410E-FD01-4AFD-A1B9-EA84D6CE155D}.Release|Any CPU.Build.0 = Release|x86
 		{823E410E-FD01-4AFD-A1B9-EA84D6CE155D}.Release|Mixed Platforms.ActiveCfg = Release|x86
 		{823E410E-FD01-4AFD-A1B9-EA84D6CE155D}.Release|Mixed Platforms.Build.0 = Release|x86
 		{823E410E-FD01-4AFD-A1B9-EA84D6CE155D}.Release|x86.ActiveCfg = Release|x86
@@ -120,5 +122,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B0625CB7-EF58-4D4C-8501-1BB3F8557A7B}
 	EndGlobalSection
 EndGlobal
