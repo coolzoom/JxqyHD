@@ -41,6 +41,12 @@ namespace Engine
         }
     }
 
+    public struct MagicToUseInfoItem
+    {
+        public Magic Magic;
+        public int Dir;
+    }
+
     public abstract class Character : Sprite
     {
         #region Field
@@ -150,6 +156,9 @@ namespace Engine
 
         private int _invincible;
 
+        private string _visibleVariableName;
+        private int _visibleVariableValue;
+
         /// <summary>
         /// List of the fixed path tile position.
         /// When load <see cref="FixedPos"/>, <see cref="FixedPos"/> is converted to list and stored on this value.
@@ -183,6 +192,11 @@ namespace Engine
 
         public float InvisibleByMagicTime;
         public bool IsVisibleWhenAttack;
+
+        public float DisableMoveMilliseconds;
+        public float DisableSkillMilliseconds;
+
+        public LinkedList<MagicToUseInfoItem> MagicToUseWhenAttackedList = new LinkedList<MagicToUseInfoItem>();
 
         public bool IsVisible
         {
@@ -322,7 +336,7 @@ namespace Engine
         {
             get
             {
-                return !(IsDeath || IsHide || IsInTransport || !IsVisible ||
+                return !(IsDeath || IsHide || IsInTransport || !IsVisible ||  !IsVisibleByVariable ||
                          (MovedByMagicSprite != null && MovedByMagicSprite.BelongMagic.HideUserWhenCarry > 0));
             }
         }
@@ -1021,9 +1035,23 @@ namespace Engine
             set { _invincible = value; }
         }
 
+        public string VisibleVariableName
+        {
+            get { return _visibleVariableName; }
+            set { _visibleVariableName = value; }
+        }
+
+        public int VisibleVariableValue
+        {
+            get { return _visibleVariableValue; }
+            set { _visibleVariableValue = value; }
+        }
+
+        public bool IsVisibleByVariable = true;
+
         public bool IsObstacle
         {
-            get { return (Kind != 7); }
+            get { return (Kind != 7 && IsVisibleByVariable); }
         }
 
         public bool IsPlayer
@@ -1290,6 +1318,11 @@ namespace Engine
                 return;
             }
 
+            if(DisableMoveMilliseconds > 0)
+            {
+                return;
+            }
+
             var from = Path.First.Value;
             var to = Path.First.Next.Value;
             var tileFrom = MapBase.ToTilePosition(from);
@@ -1427,6 +1460,10 @@ namespace Engine
             if (Path == null)
             {
                 StandingImmediately();
+                return;
+            }
+            if (DisableMoveMilliseconds > 0)
+            {
                 return;
             }
             if (Path.Count == 2)
@@ -1597,6 +1634,7 @@ namespace Engine
                     case "TimerScriptFile":
                     case "FlyInis":
                     case "DropIni":
+                    case "VisibleVariableName":
                         info.SetValue(this, keyData.Value, null);
                         break;
                     case "NpcIni":
@@ -1721,7 +1759,7 @@ namespace Engine
 
         protected virtual bool CanUseMagic()
         {
-            return true;
+            return DisableSkillMilliseconds <= 0;
         }
 
         protected virtual bool CanRunning()
@@ -2155,7 +2193,7 @@ namespace Engine
                 }
                 return;
             }
-            if (PerformActionOk() && NpcIni.ContainsKey((int)CharacterState.Magic))
+            if (PerformActionOk() && NpcIni.ContainsKey((int)CharacterState.Magic) && DisableSkillMilliseconds <= 0)
             {
                 //Check use magic animations supporting current use magic direction or not.
                 var canUseMagicDirCount = magicUse.UseActionFile != null
@@ -2502,7 +2540,7 @@ namespace Engine
 
         protected virtual bool CanPerformeAttack()
         {
-            return true;
+            return DisableSkillMilliseconds <= 0;
         }
 
         protected virtual void OnPerformeAttack()
@@ -3283,6 +3321,15 @@ namespace Engine
         private ScriptParser _timeScriptParserCache;
         public override void Update(GameTime gameTime)
         {
+            if(!string.IsNullOrEmpty(VisibleVariableName))
+            {
+                IsVisibleByVariable = ScriptExecuter.GetVariablesValue("$" + VisibleVariableName) >= VisibleVariableValue;
+            }
+            if(!IsVisibleByVariable)
+            {
+                return;
+            }
+
             if (!IsDeathInvoked && !IsDeath)
             {
                 if (!string.IsNullOrEmpty(_timerScriptFile))
@@ -3394,6 +3441,16 @@ namespace Engine
             }
 
             var elapsedGameTime = gameTime.ElapsedGameTime;
+
+            if(DisableMoveMilliseconds > 0)
+            {
+                DisableMoveMilliseconds -= (float)elapsedGameTime.TotalMilliseconds;
+            }
+
+            if(DisableSkillMilliseconds > 0)
+            {
+                DisableSkillMilliseconds -= (float)elapsedGameTime.TotalMilliseconds;
+            }
 
             if (PoisonSeconds > 0)
             {

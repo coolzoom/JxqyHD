@@ -291,6 +291,16 @@ namespace Engine
                 }
             }
 
+            if(BelongMagic.DisableMoveMilliseconds > 0)
+            {
+                character.DisableMoveMilliseconds = BelongMagic.DisableMoveMilliseconds;
+            }
+
+            if(BelongMagic.DisableSkillMilliseconds > 0)
+            {
+                character.DisableSkillMilliseconds = BelongMagic.DisableSkillMilliseconds;
+            }
+
             if (BelongMagic.Bounce > 0)
             {
                 var direction = (RealMoveDirection == Vector2.Zero) ? (character.PositionInWorld - PositionInWorld) : RealMoveDirection;
@@ -541,6 +551,32 @@ namespace Engine
                         break;
                 }
                 MagicManager.UseMagic(character, character.MagicToUseWhenBeAttacked, character.PositionInWorld, destination, target);
+            }
+
+            foreach(var info in character.MagicToUseWhenAttackedList)
+            {
+                Vector2 destination;
+                Character target = null;
+                var dirType = (Character.BeAttackedUseMagicDirection)info.Dir;
+                switch (dirType)
+                {
+                    case Character.BeAttackedUseMagicDirection.Attacker:
+                        destination = BelongCharacter.PositionInWorld;
+                        target = BelongCharacter;
+                        break;
+                    case Character.BeAttackedUseMagicDirection.MagicSpriteOppDirection:
+                        destination = RealMoveDirection == Vector2.Zero
+                            ? (character.PositionInWorld + Utils.GetDirection8(character.CurrentDirection))
+                            : (character.PositionInWorld - RealMoveDirection);
+                        break;
+                    case Character.BeAttackedUseMagicDirection.CurrentNpcDirection:
+                        destination = character.PositionInWorld + Utils.GetDirection8(character.CurrentDirection);
+                        break;
+                    default:
+                        destination = BelongCharacter.PositionInWorld;
+                        break;
+                }
+                MagicManager.UseMagic(character, info.Magic, character.PositionInWorld, destination, target);
             }
 
             {
