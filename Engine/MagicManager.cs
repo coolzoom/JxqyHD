@@ -188,6 +188,55 @@ namespace Engine
             }
         }
 
+        private static void AddVMoveMagicSprite(Character user, Magic magic, Vector2 origin, Vector2 destination, bool destroyOnEnd)
+        {
+            var directionIndex = Utils.GetDirectionIndex(destination - origin, 8);
+            var dir = Utils.GetDirection8(directionIndex);
+            var speedRatio = GetSpeedRatio(dir);
+            var level = magic.EffectLevel < 1 ? 1 : magic.EffectLevel;
+            AddMagicSprite(GetMoveMagicSpriteOnDirection(user, magic, origin, dir, destroyOnEnd, speedRatio));
+            
+            for (var i = 1; i <= level; i++)
+            {
+                switch (directionIndex)
+                {
+                    case 0:
+                        AddMagicSprite(GetMoveMagicSpriteOnDirection(user, magic, origin - i * new Vector2(32, 16), dir, destroyOnEnd, speedRatio));
+                        AddMagicSprite(GetMoveMagicSpriteOnDirection(user, magic, origin - i * new Vector2(-32, 16), dir, destroyOnEnd, speedRatio));
+                        break;
+                    case 1:
+                        AddMagicSprite(GetMoveMagicSpriteOnDirection(user, magic, origin - i * new Vector2(0, 32), dir, destroyOnEnd, speedRatio));
+                        AddMagicSprite(GetMoveMagicSpriteOnDirection(user, magic, origin - i * new Vector2(-64, 0), dir, destroyOnEnd, speedRatio));
+                        break;
+                    case 2:
+                        AddMagicSprite(GetMoveMagicSpriteOnDirection(user, magic, origin - i * new Vector2(-32, 16), dir, destroyOnEnd, speedRatio));
+                        AddMagicSprite(GetMoveMagicSpriteOnDirection(user, magic, origin - i * new Vector2(-32, -16), dir, destroyOnEnd, speedRatio));
+                        break;
+                    case 3:
+                        AddMagicSprite(GetMoveMagicSpriteOnDirection(user, magic, origin - i * new Vector2(0, -32), dir, destroyOnEnd, speedRatio));
+                        AddMagicSprite(GetMoveMagicSpriteOnDirection(user, magic, origin - i * new Vector2(-64, 0), dir, destroyOnEnd, speedRatio));
+                        break;
+                    case 4:
+                        AddMagicSprite(GetMoveMagicSpriteOnDirection(user, magic, origin - i * new Vector2(32, -16), dir, destroyOnEnd, speedRatio));
+                        AddMagicSprite(GetMoveMagicSpriteOnDirection(user, magic, origin - i * new Vector2(-32, -16), dir, destroyOnEnd, speedRatio));
+                        break;
+                    case 5:
+                        AddMagicSprite(GetMoveMagicSpriteOnDirection(user, magic, origin - i * new Vector2(64, 0), dir, destroyOnEnd, speedRatio));
+                        AddMagicSprite(GetMoveMagicSpriteOnDirection(user, magic, origin - i * new Vector2(0, -32), dir, destroyOnEnd, speedRatio));
+                        break;
+                    case 6:
+                        AddMagicSprite(GetMoveMagicSpriteOnDirection(user, magic, origin - i * new Vector2(32, 16), dir, destroyOnEnd, speedRatio));
+                        AddMagicSprite(GetMoveMagicSpriteOnDirection(user, magic, origin - i * new Vector2(32, -16), dir, destroyOnEnd, speedRatio));
+                        break;
+                    case 7:
+                        AddMagicSprite(GetMoveMagicSpriteOnDirection(user, magic, origin - i * new Vector2(0, 32), dir, destroyOnEnd, speedRatio));
+                        AddMagicSprite(GetMoveMagicSpriteOnDirection(user, magic, origin - i * new Vector2(64, 0), dir, destroyOnEnd, speedRatio));
+                        break;
+                }
+                
+            }
+        }
+
         private static void AddCircleMoveMagicSprite(Character user, Magic magic, Vector2 origin, bool destroyOnEnd)
         {
             var list = Utils.GetDirection32List();
@@ -878,6 +927,14 @@ namespace Engine
                 AddUseMagicItem(new UseMagicInfoItem(magic.SecondMagicDelay, user, magic.SecondMagicFile, origin, destination, target));
             }
 
+            if(magic.RandMagicProbability > 0 && magic.RandMagicFile != null)
+            {
+                if(Globals.TheRandom.Next(100) < magic.RandMagicProbability)
+                {
+                    UseMagic(user, magic.RandMagicFile, origin, destination, target);
+                }
+            }
+
             if (magic.BodyRadius > 0 && target != null && recursiveCounter == 0)
             {
                 foreach (var body in ObjManager.GetBodyInRaidus(target.TilePosition, magic.BodyRadius, true))
@@ -889,15 +946,22 @@ namespace Engine
 
             if(magic.ReviveBodyRadius > 0)
             {
+                var count = 0;
                 foreach (var body in ObjManager.GetBodyInRaidus(MapBase.ToTilePosition(destination), magic.ReviveBodyRadius, true))
                 {
-                    if (!string.IsNullOrEmpty(body.ReviveNpcIni))
+                    if (!string.IsNullOrEmpty(body.ReviveNpcIni) && (magic.ReviveBodyMaxCount == 0 || magic.ReviveBodyMaxCount > count))
                     {
+                        count++;
                         var npc = new Npc(@"ini\npc\" + body.ReviveNpcIni);
                         npc.Relation = ((user as Player != null) || (user.Relation == (int)Character.RelationType.Friend)) ? (int)Character.RelationType.Friend : (int)Character.RelationType.Enemy;
                         npc.TilePosition = body.TilePosition;
                         npc.Dir = body.Dir;
+                        npc.LifeMilliseconds = magic.ReviveBodyLifeMilliSeconds;
                         NpcManager.AddNpc(npc);
+                    }
+                    if(magic.ReviveBodyMaxCount > 0 && magic.ReviveBodyMaxCount <= count)
+                    {
+                        break;
                     }
                 }
                 return;
@@ -1051,6 +1115,12 @@ namespace Engine
                     AddFixedPositionMagicSprite(user, magic, destination, true);
                 }
                     break;
+                case 24:
+                {
+                    AddVMoveMagicSprite(user, magic, origin, destination, false);
+                }
+                    break;
+
             }
 
             //Magic side effect

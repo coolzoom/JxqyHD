@@ -615,45 +615,169 @@ namespace Engine.Script
 
         public static void SetObjScript(List<string> parameters, object belongObject)
         {
-            var name = Utils.RemoveStringQuotes(parameters[0]);
-            var scriptFileName = Utils.RemoveStringQuotes(parameters[1]);
-            var target = belongObject as Obj;
-            if (!string.IsNullOrEmpty(name))
-                target = ObjManager.GetObj(name);
-            if (target != null)
+            if(parameters.Count == 2)
             {
-                target.ScriptFile = scriptFileName;
+                var name = Utils.RemoveStringQuotes(parameters[0]);
+                var scriptFileName = Utils.RemoveStringQuotes(parameters[1]);
+                var target = belongObject as Obj;
+                if (!string.IsNullOrEmpty(name))
+                    target = ObjManager.GetObj(name);
+                if (target != null)
+                {
+                    target.ScriptFile = scriptFileName;
+                }
+            }
+            else if(parameters.Count == 3)
+            {
+                var name = Utils.RemoveStringQuotes(parameters[0]);
+                var scriptName = Utils.RemoveStringQuotes(parameters[1]);
+                var objFileName = Utils.RemoveStringQuotes(parameters[2]);
+                var path = Utils.GetNpcObjFilePath(objFileName);
+
+                var list = new List<KeyDataCollection>();
+                var data = new FileIniDataParser().ReadFile(path, Globals.LocalEncoding);
+                var count = int.Parse(data["Head"]["Count"]);
+                for (var i = 0; i < count; i++)
+                {
+                    list.Add(data["OBJ" + string.Format("{0:000}", i)]);
+                }
+                foreach (var keyDataCollection in list)
+                {
+                    var finded = false;
+                    foreach (var keyData in keyDataCollection)
+                    {
+                        if (keyData.KeyName == "ObjName" && keyData.Value == name)
+                        {
+                            finded = true;
+                        }
+                    }
+                    if (finded)
+                    {
+                        foreach (var keyData in keyDataCollection)
+                        {
+                            if (keyData.KeyName == "ScriptFile")
+                            {
+                                keyData.Value = scriptName;
+                            }
+                        }
+                    }
+                }
+                var savePath = @"save\game\" + objFileName;
+                File.WriteAllText(savePath, data.ToString(), Globals.LocalEncoding);
             }
         }
 
         public static void SetNpcScript(List<string> parameters, object belongObject)
         {
-            Character target;
-            string script;
-            GetTargetAndScript(parameters[0],
-                parameters[1],
-                belongObject,
-                out target,
-                out script);
-            if (target != null)
+            if(parameters.Count == 2)
             {
-                target.ScriptFile = script;
+                Character target;
+                string script;
+                GetTargetAndScript(parameters[0],
+                    parameters[1],
+                    belongObject,
+                    out target,
+                    out script);
+                if (target != null)
+                {
+                    target.ScriptFile = script;
+                }
+            }
+            else if(parameters.Count == 3)
+            {
+                var name = Utils.RemoveStringQuotes(parameters[0]);
+                var scriptName = Utils.RemoveStringQuotes(parameters[1]);
+                var npcFileName = Utils.RemoveStringQuotes(parameters[2]);
+                var path = Utils.GetNpcObjFilePath(npcFileName);
+
+                var list = new List<KeyDataCollection>();
+                var data = new FileIniDataParser().ReadFile(path, Globals.LocalEncoding);
+                var count = int.Parse(data["Head"]["Count"]);
+                for (var i = 0; i < count; i++)
+                {
+                    list.Add(data["NPC" + string.Format("{0:000}", i)]);
+                }
+                foreach (var keyDataCollection in list)
+                {
+                    var finded = false;
+                    foreach (var keyData in keyDataCollection)
+                    {
+                        if(keyData.KeyName == "Name" && keyData.Value == name)
+                        {
+                            finded = true;
+                        }
+                    }
+                    if(finded)
+                    {
+                        foreach (var keyData in keyDataCollection)
+                        {
+                            if (keyData.KeyName == "ScriptFile")
+                            {
+                                keyData.Value = scriptName;
+                            }
+                        }
+                    }
+                }
+                var savePath = @"save\game\" + npcFileName;
+                File.WriteAllText(savePath, data.ToString(), Globals.LocalEncoding);
             }
         }
 
         public static void SetNpcDeathScript(List<string> parameters, object belongObject)
         {
-            Character target;
-            string script;
-            GetTargetAndScript(parameters[0],
-                parameters[1],
-                belongObject,
-                out target,
-                out script);
-            if (target != null)
+            if(parameters.Count == 2)
             {
-                target.DeathScript = script;
+                Character target;
+                string script;
+                GetTargetAndScript(parameters[0],
+                    parameters[1],
+                    belongObject,
+                    out target,
+                    out script);
+                if (target != null)
+                {
+                    target.DeathScript = script;
+                }
             }
+            else if(parameters.Count == 3)
+            {
+                var name = Utils.RemoveStringQuotes(parameters[0]);
+                var scriptName = Utils.RemoveStringQuotes(parameters[1]);
+                var npcFileName = Utils.RemoveStringQuotes(parameters[2]);
+                var path = Utils.GetNpcObjFilePath(npcFileName);
+
+                var list = new List<KeyDataCollection>();
+                var data = new FileIniDataParser().ReadFile(path, Globals.LocalEncoding);
+                var count = int.Parse(data["Head"]["Count"]);
+                for (var i = 0; i < count; i++)
+                {
+                    list.Add(data["NPC" + string.Format("{0:000}", i)]);
+                }
+                foreach (var keyDataCollection in list)
+                {
+                    var finded = false;
+                    foreach (var keyData in keyDataCollection)
+                    {
+                        if (keyData.KeyName == "Name" && keyData.Value == name)
+                        {
+                            finded = true;
+                        }
+                    }
+                    if (finded)
+                    {
+                        foreach (var keyData in keyDataCollection)
+                        {
+                            if (keyData.KeyName == "DeathScript")
+                            {
+                                keyData.Value = scriptName;
+                            }
+                        }
+                    }
+                }
+                var savePath = @"save\game\" + npcFileName;
+                File.WriteAllText(savePath, data.ToString(), Globals.LocalEncoding);
+            }
+            
         }
 
         public static void SetNpcLevel(List<string> parameters, object belongObject)
@@ -2066,6 +2190,30 @@ namespace Engine.Script
         public static void DelMagic(List<string> parameters)
         {
             MagicListManager.DelMagic(Utils.RemoveStringQuotes(parameters[0]), Globals.ThePlayer);
+        }
+
+        public static void SetPlayerMagicToUseWhenBeAttacked(List<string> parameters)
+        {
+            var magicFileName = Utils.RemoveStringQuotes(parameters[0]);
+            var magicDirectionWhenBeAttacked = int.Parse(parameters[1]);
+            if (Globals.ThePlayer != null)
+            {
+                Globals.ThePlayer.MagicToUseWhenBeAttacked = Utils.GetMagic(magicFileName, false).GetLevel(Globals.ThePlayer.AttackLevel);
+                Globals.ThePlayer.MagicDirectionWhenBeAttacked = magicDirectionWhenBeAttacked;
+            }
+        }
+
+        public static void SetNpcMagicToUseWhenBeAttacked(List<string> parameters)
+        {
+            var npcName = Utils.RemoveStringQuotes(parameters[0]);
+            var magicFileName = Utils.RemoveStringQuotes(parameters[1]);
+            var magicDirectionWhenBeAttacked = int.Parse(parameters[2]);
+            var npcs = NpcManager.GetAllNpcs(npcName);
+            foreach (var npc in npcs)
+            {
+                npc.MagicToUseWhenBeAttacked = Utils.GetMagic(magicFileName, true).GetLevel(npc.AttackLevel);
+                npc.MagicDirectionWhenBeAttacked = magicDirectionWhenBeAttacked;
+            }
         }
     }
 }

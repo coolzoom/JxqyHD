@@ -21,6 +21,7 @@ namespace Engine
         private int _moveKind;
         private int _specialKind;
         private int _specialKindValue;
+        private int _specialKindMilliSeconds;
         private int _alphaBlend;
         private int _flyingLum;
         private int _vanishLum;
@@ -37,6 +38,8 @@ namespace Engine
         private string _actionFile;
         private Magic _attackFile;
         private Magic _explodeMagicFile;
+        private Magic _randMagicFile;
+        private int _randMagicProbability;
         private Magic _flyMagic;
         private int _flyInterval;
         private Dictionary<int, Magic> _level;
@@ -123,6 +126,8 @@ namespace Engine
         private int _bodyRadius;
 
         private int _reviveBodyRadius;
+        private int _reviveBodyMaxCount;
+        private int _reviveBodyLifeMilliSeconds;
 
         private int _noSpecialKindEffect;
 
@@ -130,6 +135,10 @@ namespace Engine
 
         private int _noInterruption;
         private Dictionary<int, List<MagicRegionFileReader.Item>> _regionFile;
+
+        private int _traceEnemy;
+        private int _traceSpeed;
+        private int _traceEnemyDelayMilliseconds;
 
         #region Leap
         private int _leapTimes;
@@ -194,6 +203,18 @@ namespace Engine
         {
             get { return _explodeMagicFile; }
             set { _explodeMagicFile = value; }
+        }
+
+        public Magic RandMagicFile
+        {
+            get { return _randMagicFile; }
+            set { _randMagicFile = value; }
+        }
+
+        public int RandMagicProbability
+        {
+            get { return _randMagicProbability; }
+            set { _randMagicProbability = value; }
         }
 
         public Magic FlyMagic
@@ -267,6 +288,12 @@ namespace Engine
         {
             get { return _specialKind; }
             set { _specialKind = value; }
+        }
+
+        public int SpecialKindMilliSeconds
+        {
+            get { return _specialKindMilliSeconds; }
+            set { _specialKindMilliSeconds = value; }
         }
 
         public int SpecialKindValue
@@ -915,6 +942,18 @@ namespace Engine
             set { _reviveBodyRadius = value; }
         }
 
+        public int ReviveBodyMaxCount
+        {
+            get { return _reviveBodyMaxCount; }
+            set { _reviveBodyMaxCount = value; }
+        }
+
+        public int ReviveBodyLifeMilliSeconds
+        {
+            get { return _reviveBodyLifeMilliSeconds; }
+            set { _reviveBodyLifeMilliSeconds = value; }
+        }
+
         public int NoSpecialKindEffect
         {
             get { return _noSpecialKindEffect; }
@@ -937,6 +976,24 @@ namespace Engine
         {
             get { return _regionFile; }
             set { _regionFile = value; }
+        }
+
+        public int TraceEnemy
+        {
+            get { return _traceEnemy; }
+            set { _traceEnemy = value; }
+        }
+
+        public int TraceSpeed
+        {
+            get { return _traceSpeed; }
+            set { _traceSpeed = value; }
+        }
+
+        public int TraceEnemyDelayMilliseconds
+        {
+            get { return _traceEnemyDelayMilliseconds; }
+            set { _traceEnemyDelayMilliseconds = value; }
         }
 
         #endregion
@@ -986,6 +1043,7 @@ namespace Engine
                     case "FlyMagic":
                     case "ParasiticMagic":
                     case "SecondMagicFile":
+                    case "RandMagicFile":
                         info.SetValue(this, Utils.GetMagic(nameValue[1], false), null);
                         break;
                     case "RegionFile":
@@ -1095,6 +1153,10 @@ namespace Engine
             if (magic.ExplodeMagicFile != null)
             {
                 magic.ExplodeMagicFile = magic.ExplodeMagicFile.GetLevel(level);
+            }
+            if(magic.RandMagicFile != null)
+            {
+                magic.RandMagicFile = magic.RandMagicFile.GetLevel(level);
             }
             //Assign FlyMagic level
             if (magic.FlyMagic != null)
