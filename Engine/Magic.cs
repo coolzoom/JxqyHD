@@ -140,6 +140,26 @@ namespace Engine
         private int _traceSpeed;
         private int _traceEnemyDelayMilliseconds;
 
+        private int _disableUse;
+        private int _lifeFullToUse;
+
+        private int _lifeMax;
+        private int _ThewMax;
+        private int _ManaMax;
+        private int _attack;
+        private int _defend;
+        private int _evade;
+        private int _attack2;
+        private int _defend2;
+        private int _attack3;
+        private int _defend3;
+
+        private string _flyIni;
+        private string _flyIni2;
+
+        private string _magicToUseWhenBeAttacked;
+        private int _magicDirectionWhenBeAttacked;
+
         #region Leap
         private int _leapTimes;
         private int _leapFrame;
@@ -996,6 +1016,102 @@ namespace Engine
             set { _traceEnemyDelayMilliseconds = value; }
         }
 
+        public int DisableUse
+        {
+            get { return _disableUse; }
+            set { _disableUse = value; }
+        }
+
+        public int LifeFullToUse
+        {
+            get { return _lifeFullToUse; }
+            set { _lifeFullToUse = value; }
+        }
+
+        public int LifeMax
+        {
+            get { return _lifeMax; }
+            set { _lifeMax = value; }
+        }
+
+        public int ThewMax
+        {
+            get { return _ThewMax; }
+            set { _ThewMax = value; }
+        }
+
+        public int ManaMax
+        {
+            get { return _ManaMax; }
+            set { _ManaMax = value; }
+        }
+
+        public int Attack
+        {
+            get { return _attack; }
+            set { _attack = value; }
+        }
+
+        public int Defend
+        {
+            get { return _defend; }
+            set { _defend = value; }
+        }
+
+        public int Evade
+        {
+            get { return _evade; }
+            set { _evade = value; }
+        }
+
+        public int Attack2
+        {
+            get { return _attack2; }
+            set { _attack2 = value; }
+        }
+
+        public int Defend2
+        {
+            get { return _defend2; }
+            set { _defend2 = value; }
+        }
+
+        public int Attack3
+        {
+            get { return _attack3; }
+            set { _attack3 = value; }
+        }
+
+        public int Defend3
+        {
+            get { return _defend3; }
+            set { _defend3 = value; }
+        }
+
+        public string FlyIni
+        {
+            get { return _flyIni; }
+            set { _flyIni = value; }
+        }
+
+        public string FlyIni2
+        {
+            get { return _flyIni2; }
+            set { _flyIni2 = value; }
+        }
+
+        public string MagicToUseWhenBeAttacked
+        {
+            get { return _magicToUseWhenBeAttacked; }
+            set { _magicToUseWhenBeAttacked = value; }
+        }
+
+        public int MagicDirectionWhenBeAttacked
+        {
+            get { return _magicDirectionWhenBeAttacked; }
+            set { _magicDirectionWhenBeAttacked = value; }
+        }
+
         #endregion
 
         //noAttackFile - resolve recursive problem of AttackFile
@@ -1016,6 +1132,9 @@ namespace Engine
                     case "ActionFile":
                     case "NpcFile":
                     case "Type":
+                    case "FlyIni":
+                    case "FlyIni2":
+                    case "MagicToUseWhenBeAttacked":
                         info.SetValue(this, nameValue[1], null);
                         break;
                     case "Image":

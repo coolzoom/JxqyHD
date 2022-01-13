@@ -67,6 +67,7 @@ namespace Engine
             get { return _flyIniReplace; }
             set
             {
+                RemoveMagicFromInfos(_flyIniReplace, AttackRadius);
                 if (value != null)
                 {
                     RemoveMagicFromInfos(FlyIni, AttackRadius);
@@ -74,7 +75,6 @@ namespace Engine
                 }
                 else
                 {
-                    RemoveMagicFromInfos(_flyIniReplace, AttackRadius);
                     AddMagicToInfos(FlyIni, AttackRadius);
                 }
                 _flyIniReplace = value;
@@ -86,6 +86,7 @@ namespace Engine
             get { return _flyIni2Replace; }
             set
             {
+                RemoveMagicFromInfos(_flyIni2Replace, AttackRadius);
                 if (value != null)
                 {
                     RemoveMagicFromInfos(FlyIni2, AttackRadius);
@@ -93,7 +94,6 @@ namespace Engine
                 }
                 else
                 {
-                    RemoveMagicFromInfos(_flyIni2Replace, AttackRadius);
                     AddMagicToInfos(FlyIni2, AttackRadius);
                 }
                 _flyIni2Replace = value;
@@ -149,7 +149,15 @@ namespace Engine
             {
                 if (value != null && value.TheMagic != null)
                 {
-                    _currentMagicInUse = value;
+                    if (value.TheMagic.DisableUse == 0)
+                    {
+                        _currentMagicInUse = value;
+                    }
+                    else
+                    {
+                        _currentMagicInUse = null;
+                        GuiManager.ShowMessage("该武功不能使用");
+                    }
                 }
                 else
                 {
@@ -247,6 +255,40 @@ namespace Engine
 
         private MouseState _lastMouseState;
         private KeyboardState _lastKeyboardState;
+        private bool _isReleaseRightButtonAfterHasInteractiveTarget;
+
+        public void LoadMagicEffect()
+        {
+            MagicListManager.SetMagicEffect(this);
+        }
+
+        public void LoadMagicEffect(MagicListManager.MagicItemInfo[] infos)
+        {
+            foreach (var magicItemInfo in infos)
+            {
+                if (magicItemInfo != null && magicItemInfo.TheMagic != null)
+                {
+                    if (!string.IsNullOrEmpty(magicItemInfo.TheMagic.MagicToUseWhenBeAttacked))
+                    {
+                        MagicToUseWhenAttackedList.AddLast(new MagicToUseInfoItem
+                        {
+                            From = magicItemInfo.TheMagic.FileName,
+                            Magic = Utils.GetMagic(magicItemInfo.TheMagic.MagicToUseWhenBeAttacked, false).GetLevel(AttackLevel),
+                            Dir = magicItemInfo.TheMagic.MagicDirectionWhenBeAttacked
+                        });
+                    }
+
+                    if (!string.IsNullOrEmpty(magicItemInfo.TheMagic.FlyIni))
+                    {
+                        FlyIniReplace = Utils.GetMagic(magicItemInfo.TheMagic.FlyIni, false).GetLevel(AttackLevel);
+                    }
+                    if (!string.IsNullOrEmpty(magicItemInfo.TheMagic.FlyIni2))
+                    {
+                        FlyIni2Replace = Utils.GetMagic(magicItemInfo.TheMagic.FlyIni2, false).GetLevel(AttackLevel);
+                    }
+                }
+            }
+        }
 
         private void SetFlyIniAdditionalEffect(Magic.AddonEffect effect)
         {
@@ -328,6 +370,10 @@ namespace Engine
                 {
                     CurrentMagicInUse = info;
                     _isUseMagicByKeyborad = true;
+                    if (CurrentMagicInUse == null)
+                    {
+                        _isUseMagicByKeyborad = false;
+                    }
                 }
             }
         }
@@ -780,6 +826,7 @@ namespace Engine
                 {
                     MagicToUseWhenAttackedList.AddLast(new MagicToUseInfoItem
                     {
+                        From = equip.FileName,
                         Magic = equip.MagicToUseWhenBeAttacked.GetLevel(AttackLevel),
                         Dir = equip.MagicDirectionWhenBeAttacked.GetOneValue()
                     });
@@ -888,17 +935,7 @@ namespace Engine
 
                 if (equip.MagicToUseWhenBeAttacked != null)
                 {
-                    for (var node = MagicToUseWhenAttackedList.First; node != null;)
-                    {
-                        var info = node.Value;
-                        var next = node.Next;
-                        if(info.Magic.FileName == equip.MagicToUseWhenBeAttacked.FileName)
-                        {
-                            MagicToUseWhenAttackedList.Remove(node);
-                            break;
-                        }
-                        node = next;
-                    }
+                    RemoveMagicToUseWhenAttackedList(equip.FileName);
                 }
             }
         }
@@ -1045,7 +1082,67 @@ namespace Engine
             var levelupExp = info.TheMagic.LevelupExp;
             if (info.Exp >= levelupExp)
             {
+                var oldLevelMagic = info.TheMagic;
                 info.TheMagic = info.TheMagic.GetLevel(info.TheMagic.CurrentLevel + 1);
+
+                //magic level up, add player properties
+                LifeMax += info.TheMagic.LifeMax;
+                ThewMax += info.TheMagic.ThewMax;
+                ManaMax += info.TheMagic.ManaMax;
+                Attack += info.TheMagic.Attack;
+                Defend += info.TheMagic.Defend;
+                Evade += info.TheMagic.Evade;
+                Attack2 += info.TheMagic.Attack2;
+                Defend2 += info.TheMagic.Defend2;
+                Attack3 += info.TheMagic.Attack3;
+                Defend3 += info.TheMagic.Defend3;
+
+                //replace flyini
+                if (oldLevelMagic.FlyIni != info.TheMagic.FlyIni)
+                {
+                    if (!string.IsNullOrEmpty(oldLevelMagic.FlyIni))
+                    {
+                        FlyIniReplace = null;
+                    }
+
+                    if (!string.IsNullOrEmpty(info.TheMagic.FlyIni))
+                    {
+                        FlyIniReplace = Utils.GetMagic(info.TheMagic.FlyIni, false).GetLevel(AttackLevel);
+                    }
+                }
+
+                if (oldLevelMagic.FlyIni2 != info.TheMagic.FlyIni2)
+                {
+                    if (!string.IsNullOrEmpty(oldLevelMagic.FlyIni2))
+                    {
+                        FlyIni2Replace = null;
+                    }
+
+                    if (!string.IsNullOrEmpty(info.TheMagic.FlyIni2))
+                    {
+                        FlyIni2Replace = Utils.GetMagic(info.TheMagic.FlyIni2, false).GetLevel(AttackLevel);
+                    }
+                }
+
+                if (oldLevelMagic.MagicToUseWhenBeAttacked != info.TheMagic.MagicToUseWhenBeAttacked || 
+                    oldLevelMagic.MagicDirectionWhenBeAttacked != info.TheMagic.MagicDirectionWhenBeAttacked)
+                {
+                    if (!string.IsNullOrEmpty(oldLevelMagic.MagicToUseWhenBeAttacked))
+                    {
+                        RemoveMagicToUseWhenAttackedList(info.TheMagic.FileName);
+                    }
+
+                    if (!string.IsNullOrEmpty(info.TheMagic.MagicToUseWhenBeAttacked))
+                    {
+                        MagicToUseWhenAttackedList.AddLast(new MagicToUseInfoItem
+                        {
+                            From = info.TheMagic.FileName,
+                            Magic = Utils.GetMagic(info.TheMagic.MagicToUseWhenBeAttacked, false).GetLevel(AttackLevel),
+                            Dir = info.TheMagic.MagicDirectionWhenBeAttacked
+                        });
+                    }
+                }
+
                 if (info.TheMagic.LevelupExp == 0)
                 {
                     //Magic is max level, make exp equal max exp
@@ -1218,7 +1315,7 @@ namespace Engine
                 {
                     if(obj.ScriptFileJustTouch > 0 && !string.IsNullOrEmpty(obj.ScriptFile))
                     {
-                        obj.StartInteract();
+                        obj.StartInteract(false);
                     }
                 }
             }
@@ -1389,46 +1486,87 @@ namespace Engine
                 }
                 var rightButtonPressed = mouseState.RightButton == ButtonState.Pressed && _lastMouseState.RightButton != ButtonState.Pressed;
                 var isNoDelayMagic = CurrentMagicInUse != null && CurrentMagicInUse.TheMagic.MoveKind == 13 && CurrentMagicInUse.TheMagic.SpecialKind == 8;
-                if (!IsFightDisabled &&
-                    ControledCharacter == null && //Can't use magic when controling other character
-                    ((isNoDelayMagic && rightButtonPressed) || (!isNoDelayMagic && mouseState.RightButton == ButtonState.Pressed) || _isUseMagicByKeyborad)
-                   )
+                var isSelectedNpcRightInteract = Globals.OutEdgeNpc != null && !Globals.OutEdgeNpc.IsFighter &&
+                                                 Globals.OutEdgeNpc.HasInteractScriptRight;
+                if (_isReleaseRightButtonAfterHasInteractiveTarget == false &&
+                    mouseState.RightButton != ButtonState.Pressed)
                 {
-                    if (CurrentMagicInUse == null)
-                    {
-                        if (!_isUseMagicByKeyborad)
-                        {
-                            GuiManager.ShowMessage("请在武功栏使用鼠标右键选择武功");
-                        }
-                    }
-                    else if (CurrentMagicInUse.RemainColdMilliseconds > 0)
-                    {
-                        GuiManager.ShowMessage("武功尚未冷却");
-                    }
-                    else
-                    {
-                        if (!AttackClosedAnemy(character))
-                        {
-                            if (CurrentMagicInUse.TheMagic.BodyRadius > 0 &&
-                                (Globals.OutEdgeNpc == null || !Globals.OutEdgeNpc.IsEnemy))
-                            {
-                                GuiManager.ShowMessage("无有效目标");
-                            }
-                            else if (CurrentMagicInUse.TheMagic.MoveKind == 21 && Globals.OutEdgeNpc == null)
-                            {
-                                GuiManager.ShowMessage("无目标");
-                            }
-                            else
-                            {
-                                _autoAttackTarget = null;
-                                if (Globals.OutEdgeNpc != null)
-                                    UseMagic(CurrentMagicInUse.TheMagic, Globals.OutEdgeNpc.TilePosition, Globals.OutEdgeNpc);
-                                else UseMagic(CurrentMagicInUse.TheMagic, mouseTilePosition);
-                            }
-                        }
-                    }
-
+                    _isReleaseRightButtonAfterHasInteractiveTarget = true;
                 }
+                if (rightButtonPressed &&
+                    (isSelectedNpcRightInteract ||
+                     (Globals.OutEdgeObj != null && Globals.OutEdgeObj.HasInteractScriptRight)))
+                {
+                    if (Globals.OutEdgeNpc != null &&
+                             Globals.OutEdgeNpc != ControledCharacter &&
+                             Globals.OutEdgeNpc.HasInteractScriptRight)
+                    {
+                        if (_lastMouseState.LeftButton == ButtonState.Released)
+                        {
+                            _autoAttackTarget = null;
+                            if (character.InteractWith(Globals.OutEdgeNpc, _isRun, true))
+                            {
+                                _isReleaseRightButtonAfterHasInteractiveTarget = false;
+                            }
+                        }
+                    }
+                    else if (Globals.OutEdgeObj != null &&
+                             Globals.OutEdgeObj.HasInteractScriptRight)
+                    {
+                        if (_lastMouseState.LeftButton == ButtonState.Released)
+                        {
+                            _autoAttackTarget = null;
+                            if (character.InteractWith(Globals.OutEdgeObj, _isRun, true))
+                            {
+                                _isReleaseRightButtonAfterHasInteractiveTarget = false;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    if (!IsFightDisabled &&
+                        ControledCharacter == null && //Can't use magic when controling other character
+                        ((isNoDelayMagic && rightButtonPressed) || (!isNoDelayMagic && mouseState.RightButton == ButtonState.Pressed && !isSelectedNpcRightInteract && _isReleaseRightButtonAfterHasInteractiveTarget) || _isUseMagicByKeyborad)
+                    )
+                    {
+                        if (CurrentMagicInUse == null)
+                        {
+                            if (!_isUseMagicByKeyborad)
+                            {
+                                GuiManager.ShowMessage("请在武功栏使用鼠标右键选择武功");
+                            }
+                        }
+                        else if (CurrentMagicInUse.RemainColdMilliseconds > 0)
+                        {
+                            GuiManager.ShowMessage("武功尚未冷却");
+                        }
+                        else
+                        {
+                            if (!AttackClosedAnemy(character))
+                            {
+                                if (CurrentMagicInUse.TheMagic.BodyRadius > 0 &&
+                                    (Globals.OutEdgeNpc == null || !Globals.OutEdgeNpc.IsEnemy))
+                                {
+                                    GuiManager.ShowMessage("无有效目标");
+                                }
+                                else if (CurrentMagicInUse.TheMagic.MoveKind == 21 && Globals.OutEdgeNpc == null)
+                                {
+                                    GuiManager.ShowMessage("无目标");
+                                }
+                                else
+                                {
+                                    _autoAttackTarget = null;
+                                    if (Globals.OutEdgeNpc != null)
+                                        UseMagic(CurrentMagicInUse.TheMagic, Globals.OutEdgeNpc.TilePosition, Globals.OutEdgeNpc);
+                                    else UseMagic(CurrentMagicInUse.TheMagic, mouseTilePosition);
+                                }
+                            }
+                        }
+
+                    }
+                }
+                
 
                 if (keyboardState.IsKeyDown(Keys.V) &&
                 _lastKeyboardState.IsKeyUp(Keys.V) &&

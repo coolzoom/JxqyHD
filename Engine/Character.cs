@@ -45,6 +45,7 @@ namespace Engine
 
     public struct MagicToUseInfoItem
     {
+        public string From;
         public Magic Magic;
         public int Dir;
     }
@@ -78,7 +79,7 @@ namespace Engine
         private int _defend3;
         private int _exp;
         private int _levelUpExp;
-        private int _level;
+        protected int _level;
         private int _life;
         private int _lifeMax;
         private int _thew;
@@ -104,6 +105,7 @@ namespace Engine
         private Magic _magicToUseWhenDeath;
         private int _magicDirectionWhenDeath;
         private string _scriptFile;
+        private string _scriptFileRight;
         private int _canInteractDirectly;
         private string _deathScript;
         private string _timerScriptFile;
@@ -126,6 +128,7 @@ namespace Engine
         private Vector2 _destinationAttackPositionInWorld = Vector2.Zero;
         private LinkedList<Vector2> _path;
         private object _interactiveTarget;
+        private bool _isInteractiveRightScript;
         private bool _isInInteract;
         private bool _isRunToTarget;
         private bool _isDeath;
@@ -166,6 +169,8 @@ namespace Engine
 
         private string _visibleVariableName;
         private int _visibleVariableValue;
+
+        private int _aiType;
 
         /// <summary>
         /// List of the fixed path tile position.
@@ -228,6 +233,8 @@ namespace Engine
             get { return _dropIni; }
             set { _dropIni = value; }
         }
+
+        public bool HasInteractiveTarget => _interactiveTarget != null;
 
 
         public class AddmagicEffectInfo
@@ -802,7 +809,7 @@ namespace Engine
 
         public int Level
         {
-            get { return _level; }
+            get { return Math.Abs(_level); }
             set { _level = value; }
         }
 
@@ -814,6 +821,11 @@ namespace Engine
                 _lifeMax = value;
                 if (_life > value) _life = value;
             }
+        }
+
+        public bool IsFullLife
+        {
+            get { return _life == _lifeMax; }
         }
 
         public int Thew
@@ -1009,6 +1021,12 @@ namespace Engine
             set { _scriptFile = value; }
         }
 
+        public string ScriptFileRight
+        {
+            get { return _scriptFileRight; }
+            set { _scriptFileRight = value; }
+        }
+
         public int CanInteractDirectly
         {
             get { return _canInteractDirectly; }
@@ -1030,6 +1048,11 @@ namespace Engine
         public bool HasInteractScript
         {
             get { return !string.IsNullOrEmpty(ScriptFile); }
+        }
+
+        public bool HasInteractScriptRight
+        {
+            get { return !string.IsNullOrEmpty(ScriptFileRight); }
         }
 
         public string DeathScript
@@ -1088,6 +1111,12 @@ namespace Engine
         {
             get { return _visibleVariableValue; }
             set { _visibleVariableValue = value; }
+        }
+
+        public int AIType
+        {
+            get { return _aiType; }
+            set { _aiType = value; }
         }
 
         public bool IsVisibleByVariable = true;
@@ -1215,7 +1244,7 @@ namespace Engine
 
         public bool IsInteractive
         {
-            get { return (HasInteractScript || IsEnemy || IsFighterFriend || IsNoneFighter); }
+            get { return (HasInteractScript || HasInteractScriptRight || IsEnemy || IsFighterFriend || IsNoneFighter); }
         }
 
        
@@ -1378,6 +1407,7 @@ namespace Engine
             var distance = Vector2.Distance(from, to);
             //Sotre value in case of cleared in below code
             var interactTarget = _interactiveTarget;
+            var isInteractiveRightScript = _isInteractiveRightScript;
 
             if (TilePosition == tileFrom && tileFrom != tileTo)
             {
@@ -1487,6 +1517,7 @@ namespace Engine
                 Magic magicToUse;
                 if (AttackingIsOk(out magicToUse)) PerformeAttack(magicToUse);
                 _interactiveTarget = interactTarget;
+                _isInteractiveRightScript = isInteractiveRightScript;
                 if (InteractIsOk()) PerformeInteract();
                 if (IsRuning())
                 {
@@ -1612,15 +1643,19 @@ namespace Engine
         /// <param name="count">Path step count.</param>
         /// <param name="isFlyer">If false, tile position is obstacle for character is no added to path.</param>
         /// <returns>The rand path.</returns>
-        protected List<Vector2> GetRandTilePath(int count, bool isFlyer)
+        protected List<Vector2> GetRandTilePath(int count, bool isFlyer, int maxOffset = -1)
         {
             var path = new List<Vector2>() { TilePosition };
 
             var maxTry = count * 3;//For performace, otherwise method may run forever.
-            var maxOffset = 10;
+
             if (isFlyer)
             {
-                maxOffset = 15;
+                maxOffset = maxOffset == -1 ? 15 : maxOffset;
+            }
+            else
+            {
+                maxOffset = maxOffset == -1 ? 10 : maxOffset;
             }
 
             for (var i = 1; i < count; i++)
@@ -1673,6 +1708,7 @@ namespace Engine
                     case "FixedPos":
                     case "Name":
                     case "ScriptFile":
+                    case "ScriptFileRight":
                     case "DeathScript":
                     case "TimerScriptFile":
                     case "FlyInis":
@@ -2005,6 +2041,10 @@ namespace Engine
             {
                 AddKey(keyDataCollection, "ScriptFile", _scriptFile);
             }
+            if (_scriptFileRight != null)
+            {
+                AddKey(keyDataCollection, "ScriptFileRight", _scriptFileRight);
+            }
             if (_deathScript != null)
             {
                 AddKey(keyDataCollection, "DeathScript", _deathScript);
@@ -2267,6 +2307,17 @@ namespace Engine
 
         public  virtual void UseMagic(Magic magicUse, Vector2 magicDestinationTilePosition, Character target = null)
         {
+            if (magicUse.LifeFullToUse > 0 && !IsFullLife)
+            {
+                if (IsPlayer ||
+                    (ControledMagicSprite != null && ControledMagicSprite.BelongCharacter.IsPlayer))
+                {
+                    GuiManager.ShowMessage("满血才能使用");
+                }
+
+                return;
+            }
+
             if (magicUse.MoveKind == 13 && magicUse.SpecialKind == 8)
             {
                 MagicUse = magicUse;
@@ -2628,10 +2679,12 @@ namespace Engine
             //keep value
             var attack = DestinationAttackTilePosition;
             var interact = _interactiveTarget;
+            var isInteractiveRightScript = _isInteractiveRightScript;
             WalkTo(destinationTilePosition);
             // restore
             DestinationAttackTilePosition = attack;
             _interactiveTarget = interact;
+            _isInteractiveRightScript = isInteractiveRightScript;
         }
 
         protected void RunToAndKeepingTarget(Vector2 destinationTilePosition)
@@ -2639,10 +2692,12 @@ namespace Engine
             //keep value
             var attack = DestinationAttackTilePosition;
             var interact = _interactiveTarget;
+            var isInteractiveRightScript = _isInteractiveRightScript;
             RunTo(destinationTilePosition);
             // restore
             DestinationAttackTilePosition = attack;
             _interactiveTarget = interact;
+            _isInteractiveRightScript = isInteractiveRightScript;
         }
 
         protected void PerformeAttack(Magic magicToUse)
@@ -2670,6 +2725,16 @@ namespace Engine
             if (PerformActionOk())
             {
                 if (!CanPerformeAttack()) return;
+                if (magicToUse.LifeFullToUse > 0 && !IsFullLife)
+                {
+                    if (IsPlayer || 
+                        (ControledMagicSprite != null && ControledMagicSprite.BelongCharacter.IsPlayer))
+                    {
+                        GuiManager.ShowMessage("满血才能使用");
+                    }
+
+                    return;
+                }
 
                 //Check attck animations supporting current attack direction or not.
                 var canAttackDirCount = magicToUse.UseActionFile != null
@@ -2716,11 +2781,12 @@ namespace Engine
             _totalNonFightingSeconds = 0;
         }
 
-        public void InteractWith(object target, bool isRun = false)
+        public bool InteractWith(object target, bool isRun = false, bool isRightScript=false)
         {
             if (PerformActionOk())
             {
                 _interactiveTarget = target;
+                _isInteractiveRightScript = isRightScript;
                 _isRunToTarget = isRun;
 
                 Vector2 destinationTilePositon;
@@ -2728,7 +2794,8 @@ namespace Engine
                 bool canInteractDirectly;
                 if (!GetInteractTargetInfo(out destinationTilePositon, out interactDistance, out canInteractDirectly))
                 {
-                    return;
+                    _interactiveTarget = null;
+                    return false;
                 }
 
                 if (!canInteractDirectly)
@@ -2763,14 +2830,17 @@ namespace Engine
                         {
                             //Not find, can't move to target, do nothing.
                             _interactiveTarget = null;
-                            return;
+                            return false;
                         }
                     }
                 }
 
                 if (IsStanding() && InteractIsOk())
                     PerformeInteract();
+                return true;
             }
+
+            return false;
         }
 
         private bool GetInteractTargetInfo(out Vector2 tilePosition, out int interactDistance, out bool canInteractDirectly)
@@ -2829,26 +2899,26 @@ namespace Engine
                 var obj = _interactiveTarget as Obj;
                 if (character != null)
                 {
-                    character.StartInteract(this);
+                    character.StartInteract(this, _isInteractiveRightScript);
                     SetDirection(character.PositionInWorld - PositionInWorld);
                 }
                 else if (obj != null)
                 {
-                    obj.StartInteract();
+                    obj.StartInteract(_isInteractiveRightScript);
                     SetDirection(obj.PositionInWorld - PositionInWorld);
                 }
                 StandingImmediately();
             }
         }
 
-        public void StartInteract(Character from)
+        public void StartInteract(Character from, bool isRightScript)
         {
-            if (from != null && !string.IsNullOrEmpty(ScriptFile))
+            if (from != null && !string.IsNullOrEmpty(isRightScript ? ScriptFileRight : ScriptFile))
             {
                 _isInInteract = true;
                 _directionBeforInteract = CurrentDirection;
                 SetDirection(from.PositionInWorld - PositionInWorld);
-                _currentRunInteractScript = ScriptManager.RunScript(Utils.GetScriptParser(ScriptFile), this);
+                _currentRunInteractScript = ScriptManager.RunScript(Utils.GetScriptParser(isRightScript ? ScriptFileRight : ScriptFile), this);
             }
         }
 
@@ -3085,6 +3155,49 @@ namespace Engine
                 Life = LifeMax;
                 Thew = ThewMax;
                 Mana = ManaMax;
+                Attack = detail.Attack;
+                Attack2 = detail.Attack2;
+                Attack3 = detail.Attack3;
+                Defend = detail.Defend;
+                Defend2 = detail.Defend2;
+                Defend3 = detail.Defend3;
+                Evade = detail.Evade;
+                LevelUpExp = detail.LevelUpExp;
+            }
+        }
+
+        public virtual void SetPropToLevel(int level)
+        {
+            if (LevelIni == null)
+            {
+                return;
+            }
+            Utils.LevelDetail detail = null;
+            if (LevelIni.ContainsKey(level))
+            {
+                detail = LevelIni[level];
+            }
+            if (detail != null)
+            {
+                var isFullLife = Life == LifeMax;
+                var isFullThew = Thew == ThewMax;
+                var isFullMana = Mana == ManaMax;
+                LifeMax = detail.Life;
+                ThewMax = detail.ThewMax;
+                ManaMax = detail.ManaMax;
+                if (isFullLife || Life > LifeMax)
+                {
+                    Life = LifeMax;
+                }
+                if (isFullThew || Thew > ThewMax)
+                {
+                    Thew = ThewMax;
+                }
+
+                if (isFullMana || Mana > ManaMax)
+                {
+                    Mana = ManaMax;
+                }
                 Attack = detail.Attack;
                 Attack2 = detail.Attack2;
                 Attack3 = detail.Attack3;
@@ -3376,7 +3489,7 @@ namespace Engine
         /// <param name="target">The target</param>
         public void NotifyFighterAndAllNeighbor(Character target)
         {
-            if (target == null || (!IsEnemy && !IsNoneFighter) || !IsStanding()) return;
+            if (target == null || (!IsEnemy && !IsNoneFighter) || FollowTarget != null) return;
             var characters = IsEnemy ? NpcManager.GetNeighborEnemy(this) : NpcManager.GetNeighborNuturalFighter(this);
             characters.Add(this);
             foreach (var character in characters)
@@ -3832,6 +3945,20 @@ namespace Engine
                 return true;
             }
             return false;
+        }
+
+        public void RemoveMagicToUseWhenAttackedList(string from)
+        {
+            for (var node = MagicToUseWhenAttackedList.First; node != null;)
+            {
+                var info = node.Value;
+                var next = node.Next;
+                if (info.From == from)
+                {
+                    MagicToUseWhenAttackedList.Remove(node);
+                }
+                node = next;
+            }
         }
 
         public virtual void Draw(SpriteBatch spriteBatch)
