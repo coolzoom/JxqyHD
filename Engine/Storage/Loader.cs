@@ -16,7 +16,7 @@ namespace Engine.Storage
             try
             {
                 var parser = new FileIniDataParser();
-                var data = parser.ReadFile(StorageBase.GameIniFilePath);
+                var data = parser.ReadFile(StorageBase.GameIniFilePath, Globals.LocalEncoding);
 
                 //state
                 var state = data["State"];
@@ -25,6 +25,14 @@ namespace Engine.Storage
                 ObjManager.Load(state["Obj"]);
                 BackgroundMusic.Play(state["Bgm"]);
                 Globals.PlayerIndex = int.Parse(state["Chr"]);
+                if (state.ContainsKey("ScriptShowMapPos"))
+                {
+                    Globals.ScriptShowMapPos = int.Parse(state["ScriptShowMapPos"]) > 0;
+                }
+                else
+                {
+                    Globals.ScriptShowMapPos = false;
+                }
 
                 //option
                 var option = data["Option"];

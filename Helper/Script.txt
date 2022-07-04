@@ -679,6 +679,34 @@ c - 加多少，可以是负数，负数就是减少
 AddNpcProperty("刺客","LifeMax", 100)
 AddNpcProperty("刺客","Life", 100)
 
+ChangeFlyIni(a,b)
+a - npc的名字，所有该名字的npc（不包括主角）的FlyIni都会被改变
+b - Magic文件名
+比如：
+ChangeFlyIni("刺客", "magic-暗器2.ini")
+
+ChangeFlyIni2(a,b)
+a - npc的名字，所有该名字的npc（不包括主角）的FlyIni2都会被改变
+b - Magic文件名
+比如：
+ChangeFlyIni2("刺客", "magic-暗器2.ini")
+
+AddFlyInis(a,b,c)
+a - npc的名字，所有该名字的npc（不包括主角）的FlyInis都会增加武功
+b - Magic文件名
+c - 使用距离
+比如：
+AddFlyInis("刺客", "magic-暗器2.ini", 5)
+
+DelMemo(a)
+a - 要删除的memo
+比如：
+DelMemo("去藏剑山庄拜访卓非凡。")
+
+SetShowMapPos(a)
+a - 大于0表示在游戏左下角显示当前鼠标所在位置的地图坐标，等于0表示关闭显示
+比如：
+SetShowMapPos(1)
 
 ///////////////////////////////////////////////////////////////////
 //////////////////    Implemented   End  /////////////////////////

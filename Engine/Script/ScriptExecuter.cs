@@ -948,7 +948,7 @@ namespace Engine.Script
             try
             {
                 var parser = new FileIniDataParser();
-                var data = parser.ReadFile(filePath);
+                var data = parser.ReadFile(filePath, Globals.LocalEncoding);
                 var count = int.Parse(data["Header"]["Count"]);
                 var rand = Globals.TheRandom.Next(1, count + 1);
                 return data[rand.ToString()]["IniFile"];
@@ -1013,6 +1013,11 @@ namespace Engine.Script
             var detail = TalkTextList.GetTextDetail(int.Parse(parameters[0]));
             if (detail == null) return;
             GuiManager.AddMemo(detail.Text);
+        }
+
+        public static void DelMemo(List<string> parameters)
+        {
+            GuiManager.DelMemo(Utils.RemoveStringQuotes(parameters[0]));
         }
 
         public static void DelGoods(List<string> parameters, object belongObject)
@@ -2295,6 +2300,46 @@ namespace Engine.Script
             {
                 info.SetValue(character, (int)info.GetValue(character, null) + int.Parse(parameters[2]), null);
             }
+        }
+
+        public static void ChangeFlyIni(List<string> parameters)
+        {
+            var name = Utils.RemoveStringQuotes(parameters[0]);
+            var npcs = NpcManager.GetAllNpcs(name);
+            var magicName = Utils.RemoveStringQuotes(parameters[1]);
+            foreach (var character in npcs)
+            {
+                character.FlyIni = Utils.GetMagic(magicName, character.IsMagicFromCache);
+            }
+        }
+
+        public static void ChangeFlyIni2(List<string> parameters)
+        {
+            var name = Utils.RemoveStringQuotes(parameters[0]);
+            var npcs = NpcManager.GetAllNpcs(name);
+            var magicName = Utils.RemoveStringQuotes(parameters[1]);
+            foreach (var character in npcs)
+            {
+                character.FlyIni2 = Utils.GetMagic(magicName, character.IsMagicFromCache);
+            }
+        }
+
+        public static void AddFlyInis(List<string> parameters)
+        {
+            var name = Utils.RemoveStringQuotes(parameters[0]);
+            var npcs = NpcManager.GetAllNpcs(name);
+            var magicName = Utils.RemoveStringQuotes(parameters[1]);
+            var distance = int.Parse(parameters[2]);
+            foreach (var character in npcs)
+            {
+                character.AddFlyInis(magicName, distance);
+            }
+        }
+
+        public static void SetShowMapPos(List<string> parameters)
+        {
+            var v = int.Parse(parameters[0]);
+            Globals.ScriptShowMapPos = v > 0;
         }
     }
 }

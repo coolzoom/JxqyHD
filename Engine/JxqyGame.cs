@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
 using Engine.Benchmark;
@@ -328,6 +329,17 @@ namespace Engine
                        ObjManager.FileName + "\n";
             spriteBatch.DrawString(Globals.FontSize12, text, new Vector2(3, 3), Color.White*0.9f );
         }
+
+        private void DrawMapPos(SpriteBatch spriteBatch)
+        {
+            var mouseState = Mouse.GetState();
+            var mouseScreenPosition = new Vector2(mouseState.X, mouseState.Y);
+            var mouseWorldPosition = Globals.TheCarmera.ToWorldPosition(mouseScreenPosition);
+            var mouseTilePosition = MapBase.ToTilePosition(mouseWorldPosition);
+            var text = string.Format("{0}x{1}", mouseTilePosition.X, mouseTilePosition.Y);
+
+            spriteBatch.DrawString(Globals.FontSize12, text, new Vector2(3, Globals.WindowHeight - Globals.FontSize12.LineSpacing), Color.White * 0.9f);
+        }
         #endregion Utils
 
         /// <summary>
@@ -563,6 +575,10 @@ namespace Engine
                         break;
                     case GameState.StateType.Playing:
                         DrawGamePlay(gameTime);
+                        if (Globals.ShowMapPos || Globals.ScriptShowMapPos)
+                        {
+                            DrawMapPos(_spriteBatch);
+                        }
                         break;
                     case GameState.StateType.EndAds:
                         DrawAds(gameTime);

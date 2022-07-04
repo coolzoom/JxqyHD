@@ -313,6 +313,9 @@ namespace Engine.Script
                         case "AddToMemo":
                             ScriptExecuter.AddToMemo(parameters);
                             break;
+                        case "DelMemo":
+                            ScriptExecuter.DelMemo(parameters);
+                            break;
                         case "DelGoods":
                             ScriptExecuter.DelGoods(parameters, BelongObject);
                             break;
@@ -674,6 +677,18 @@ namespace Engine.Script
                             break;
                         case "AddNpcProperty":
                             ScriptExecuter.AddNpcProperty(parameters);
+                            break;
+                        case "ChangeFlyIni":
+                            ScriptExecuter.ChangeFlyIni(parameters);
+                            break;
+                        case "ChangeFlyIni2":
+                            ScriptExecuter.ChangeFlyIni2(parameters);
+                            break;
+                        case "AddFlyInis":
+                            ScriptExecuter.AddFlyInis(parameters);
+                            break;
+                        case "SetShowMapPos":
+                            ScriptExecuter.SetShowMapPos(parameters);
                             break;
                         default:
                             throw new Exception("无此函数");

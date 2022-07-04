@@ -190,7 +190,7 @@ namespace Engine
         #endregion Field
 
         #region Protected properties
-        protected virtual bool IsMagicFromCache { get { return true; } }
+        public virtual bool IsMagicFromCache { get { return true; } }
         protected string LevelIniFile { set; get; }
 
         /// <summary>
@@ -352,7 +352,7 @@ namespace Engine
             get
             {
                 return !(IsDeath || IsHide || IsInTransport || !IsVisible ||  !IsVisibleByVariable ||
-                         (MovedByMagicSprite != null && MovedByMagicSprite.BelongMagic.HideUserWhenCarry > 0));
+                         (MovedByMagicSprite != null && MovedByMagicSprite.BelongMagic.HideUserWhenCarry > 0 && MovedByMagicSprite.BelongCharacter == this));
             }
         }
 
@@ -372,7 +372,21 @@ namespace Engine
         /// </summary>
         public bool IsInTransport { get; set; }
 
-        public MagicSprite MovedByMagicSprite { set; get; }
+        private MagicSprite _movedByMagicSprite;
+
+        public MagicSprite MovedByMagicSprite
+        {
+            get
+            {
+                return _movedByMagicSprite;
+            }
+            set
+            {
+                _movedByMagicSprite = value;
+                StandingImmediately();
+            }
+        }
+        public Vector2 MovedByMagicSpriteOffset { set; get; }
 
         public MagicSprite BoundByMagicSprite { set; get; }
         public float BouncedVelocity { set; get; }
@@ -931,6 +945,20 @@ namespace Engine
             }
         }
 
+        public void AddFlyInis(string magicFileName, int distance)
+        {
+            if (string.IsNullOrEmpty(_flyInis))
+            {
+                _flyInis = magicFileName + ":" + distance + ";";
+            }
+            else
+            {
+                _flyInis += (_flyInis.EndsWith(";") ? "" : ";") + magicFileName + ":" + distance + ";";
+            }
+            
+            _flyIniInfos.Add(new FlyIniInfoItem(distance, Utils.GetMagic(magicFileName, IsMagicFromCache).GetLevel(AttackLevel)));
+        }
+
         public Magic MagicToUseWhenLifeLow
         {
             get { return _magicToUseWhenLifeLow; }
@@ -1268,7 +1296,7 @@ namespace Engine
         #region Private method
         private void Initlize()
         {
-            if (NpcIni.ContainsKey((int)CharacterState.Stand))
+            if (IsStateImageOk(CharacterState.Stand))
             {
                 Set(MapBase.ToPixelPosition(MapX, MapY),
                     Globals.BaseSpeed,
@@ -1279,6 +1307,10 @@ namespace Engine
             if (_flyIni2 != null) _flyIni2 = _flyIni2.GetLevel(AttackLevel);
             AddMagicToInfos(_flyIni, AttackRadius, true);
             AddMagicToInfos(_flyIni2, AttackRadius, true);
+            foreach (var flyIniInfoItem in _flyIniInfos)
+            {
+                flyIniInfoItem.TheMagic = flyIniInfoItem.TheMagic.GetLevel(AttackLevel);
+            }
             _flyIniInfos.Sort();
 
             if (_magicToUseWhenLifeLow != null)
@@ -1857,7 +1889,7 @@ namespace Engine
 
         protected virtual bool CanJump()
         {
-            return !IsJumpDisabled && NpcIni.ContainsKey((int)CharacterState.Jump);
+            return !IsJumpDisabled && IsStateImageOk(CharacterState.Jump);
         }
 
         protected void AddKey(KeyDataCollection keyDataCollection, string key, float value)
@@ -2071,7 +2103,7 @@ namespace Engine
             }
             StateInitialize(false, true);
             var isStateSame = true;
-            if (_isInFighting && NpcIni.ContainsKey((int)CharacterState.FightStand))
+            if (_isInFighting && IsStateImageOk(CharacterState.FightStand))
             {
                 if(noChangeStateIfAlreadyStand)
                 {
@@ -2096,9 +2128,9 @@ namespace Engine
                 }
                 else
                 {
-                    if (NpcIni.ContainsKey((int)CharacterState.Stand1) &&
-                       Globals.TheRandom.Next(4) == 1 &&
-                       State != (int)CharacterState.Stand1) isStateSame = SetState(CharacterState.Stand1, forceRefreshShow);
+                    if (IsStateImageOk(CharacterState.Stand1) &&
+                        Globals.TheRandom.Next(4) == 1 &&
+                        State != (int)CharacterState.Stand1) isStateSame = SetState(CharacterState.Stand1, forceRefreshShow);
                     else isStateSame = SetState(CharacterState.Stand, forceRefreshShow);
                 }
 
@@ -2206,8 +2238,8 @@ namespace Engine
         {
             if (PerformActionOk() &&
                 destinationTilePosition != TilePosition &&
-                (NpcIni.ContainsKey((int)CharacterState.FightWalk) ||
-                 NpcIni.ContainsKey((int)CharacterState.Walk)))
+                (IsStateImageOk(CharacterState.FightWalk) ||
+                 IsStateImageOk(CharacterState.Walk)))
             {
                 //If in step move, alway find new path
                 if (IsWalking() && !IsInStepMove)
@@ -2224,7 +2256,7 @@ namespace Engine
                         StateInitialize();
                         Path = path;
                         DestinationMoveTilePosition = destinationTilePosition;
-                        if (_isInFighting && NpcIni.ContainsKey((int)CharacterState.FightWalk)) SetState(CharacterState.FightWalk);
+                        if (_isInFighting && IsStateImageOk(CharacterState.FightWalk)) SetState(CharacterState.FightWalk);
                         else SetState(CharacterState.Walk);
                     }
                 }
@@ -2236,10 +2268,10 @@ namespace Engine
         {
             if (PerformActionOk() &&
                 destinationTilePosition != TilePosition &&
-                (NpcIni.ContainsKey((int)CharacterState.FightRun) ||
-                 NpcIni.ContainsKey((int)CharacterState.Run)))
+                (IsStateImageOk(CharacterState.FightRun) ||
+                 IsStateImageOk(CharacterState.Run)))
             {
-                if (!NpcIni.ContainsKey((int) CharacterState.Run))
+                if (!IsStateImageOk(CharacterState.Run))
                 {
                     return;
                 }
@@ -2253,7 +2285,7 @@ namespace Engine
                     else
                     {
                         DestinationMoveTilePosition = destinationTilePosition;
-                        if (_isInFighting && NpcIni.ContainsKey((int)CharacterState.FightRun)) SetState(CharacterState.FightRun);
+                        if (_isInFighting && IsStateImageOk(CharacterState.FightRun)) SetState(CharacterState.FightRun);
                         else SetState(CharacterState.Run);
                     }
                 }
@@ -2267,8 +2299,8 @@ namespace Engine
                 destinationTilePosition != TilePosition &&
                 !MapBase.Instance.IsObstacleForCharacter(destinationTilePosition) &&
                 !HasObstacle(destinationTilePosition) &&
-                (NpcIni.ContainsKey((int)CharacterState.FightJump) ||
-                 NpcIni.ContainsKey((int)CharacterState.Jump)))
+                (IsStateImageOk(CharacterState.FightJump) ||
+                 IsStateImageOk(CharacterState.Jump)))
             {
                 if (!CanJump()) return;
 
@@ -2282,7 +2314,7 @@ namespace Engine
                 Path.AddLast(PositionInWorld);
                 Path.AddLast(DestinationMovePositionInWorld);
 
-                if (_isInFighting && NpcIni.ContainsKey((int)CharacterState.FightJump)) SetState(CharacterState.FightJump);
+                if (_isInFighting && IsStateImageOk(CharacterState.FightJump)) SetState(CharacterState.FightJump);
                 else SetState(CharacterState.Jump);
                 SetDirection(DestinationMovePositionInWorld - PositionInWorld);
                 PlayCurrentDirOnce();
@@ -2291,7 +2323,7 @@ namespace Engine
 
         public void Sitdown()
         {
-            if (PerformActionOk() && NpcIni.ContainsKey((int)CharacterState.Sit))
+            if (PerformActionOk() && IsStateImageOk(CharacterState.Sit))
             {
                 StateInitialize();
                 SetState(CharacterState.Sit);
@@ -2326,7 +2358,7 @@ namespace Engine
                 
                 if (CanUseMagic())
                 {
-                    if (NpcIni.ContainsKey((int)CharacterState.Magic))
+                    if (IsStateImageOk(CharacterState.Magic))
                     {
                         PlaySoundEffect(NpcIni[(int)CharacterState.Magic].Sound);
                     }
@@ -2335,7 +2367,7 @@ namespace Engine
                 }
                 return;
             }
-            if (PerformActionOk() && NpcIni.ContainsKey((int)CharacterState.Magic) && DisableSkillMilliseconds <= 0)
+            if (PerformActionOk() && IsStateImageOk(CharacterState.Magic) && DisableSkillMilliseconds <= 0)
             {
                 //Check use magic animations supporting current use magic direction or not.
                 var canUseMagicDirCount = magicUse.UseActionFile != null
@@ -2383,7 +2415,7 @@ namespace Engine
             {
                 StateInitialize();
                 TilePosition = TilePosition;//To tile center
-                if (NpcIni.ContainsKey((int)CharacterState.Hurt))
+                if (IsStateImageOk(CharacterState.Hurt))
                 {
                     SetState(CharacterState.Hurt);
                     PlayCurrentDirOnce();
@@ -2463,7 +2495,7 @@ namespace Engine
             }
 
             StateInitialize();
-            if (NpcIni.ContainsKey((int)CharacterState.Death))
+            if (IsStateImageOk(CharacterState.Death))
             {
                 SetState(CharacterState.Death);
                 if (IsFrozened && _isFronzenVisualEffect)
@@ -2515,9 +2547,9 @@ namespace Engine
         public void Attacking(Vector2 destinationTilePosition, bool isRun = false)
         {
             if (PerformActionOk() && 
-                (NpcIni.ContainsKey((int)CharacterState.Attack) ||
-                 NpcIni.ContainsKey((int)CharacterState.Attack1) ||
-                 NpcIni.ContainsKey((int)CharacterState.Attack2)))
+                (IsStateImageOk(CharacterState.Attack) ||
+                 IsStateImageOk(CharacterState.Attack1) ||
+                 IsStateImageOk(CharacterState.Attack2)))
             {
                 _isRunToTarget = isRun;
                 DestinationAttackTilePosition = destinationTilePosition;
@@ -2749,9 +2781,9 @@ namespace Engine
                 _magicToUseWhenAttack = magicToUse;
 
                 var value = Globals.TheRandom.Next(3);
-                if (value == 1 && NpcIni.ContainsKey((int)CharacterState.Attack1))
+                if (value == 1 && IsStateImageOk(CharacterState.Attack1))
                     SetState(CharacterState.Attack1);
-                else if (value == 2 && NpcIni.ContainsKey((int)CharacterState.Attack2))
+                else if (value == 2 && IsStateImageOk(CharacterState.Attack2))
                     SetState(CharacterState.Attack2);
                 else SetState(CharacterState.Attack);
 
@@ -2982,7 +3014,7 @@ namespace Engine
         {
             var isSameState = State == (int)state;
             if ((State != (int)state || setIfStateSame) &&
-                NpcIni.ContainsKey((int)state))
+                IsStateImageOk(state))
             {
                 if (_sound != null)
                 {
@@ -3402,7 +3434,7 @@ namespace Engine
             SetNpcIni(fileName);
             if (NpcIni != null && NpcIni.Count > 0)
             {
-                if (NpcIni.ContainsKey(State))
+                if (IsStateImageOk((CharacterState)State))
                 {
                     SetState((CharacterState)State, true);
                 }
@@ -3542,6 +3574,16 @@ namespace Engine
         public void ShowRangeRadius(int radius)
         {
             _rangeRadiusToShow = radius;
+        }
+
+        public bool IsStateImageOk(CharacterState state)
+        {
+            if (NpcIni != null && NpcIni.ContainsKey((int)state) && NpcIni[(int)state].Image != null && NpcIni[(int)state].Image.IsOk)
+            {
+                return true;
+            }
+
+            return false;
         }
         #endregion Character state set and get method
 
@@ -3857,32 +3899,35 @@ namespace Engine
                 {
                     if (MovedByMagicSprite.BelongMagic.CarryUser == 3)
                     {
-                        var fp = Engine.PathFinder.FindPosMeet(TilePosition, p => !HasObstacle(p) && !MapBase.Instance.IsObstacleForCharacter(p));
+                        //find opposite direction of magic move direction, otherwise character may pass through wall 
+                        var fp = Engine.PathFinder.FindPosMeet(TilePosition, Utils.GetDirectionIndex(-MovedByMagicSprite.MoveDirection, 8), p => !HasObstacle(p) && !MapBase.Instance.IsObstacleForCharacter(p));
                         TilePosition = fp;
                     }
                     MovedByMagicSprite = null;
                 }
                 else
                 {
-                    if(MovedByMagicSprite.BelongMagic.CarryUser == 3)
+                    if(MovedByMagicSprite.BelongMagic.CarryUser == 3 || MovedByMagicSprite.BelongMagic.CarryUser == 4)
                     {
-                        if(MapBase.Instance.IsObstacleForCharacter(MovedByMagicSprite.TilePosition))
+                        if(MapBase.Instance.IsObstacleForCharacter(TilePosition))
                         {
-                            var fp = Engine.PathFinder.FindPosMeet(TilePosition, p => !HasObstacle(p) && !MapBase.Instance.IsObstacleForCharacter(p));
+                            //find opposite direction of magic move direction, otherwise character may pass through wall 
+                            var fp = Engine.PathFinder.FindPosMeet(TilePosition, Utils.GetDirectionIndex(-MovedByMagicSprite.MoveDirection, 8), p => !HasObstacle(p) && !MapBase.Instance.IsObstacleForCharacter(p));
                             TilePosition = fp;
                             SetDirection(MovedByMagicSprite.MoveDirection);
+                            MovedByMagicSprite.Destroy();
                         } 
                         else
                         {
-                            PositionInWorld = MovedByMagicSprite.PositionInWorld;
+                            PositionInWorld = MovedByMagicSprite.PositionInWorld + MovedByMagicSpriteOffset;
                             SetDirection(MovedByMagicSprite.MoveDirection);
                         }
                     }
                     else
                     {
-                        if (CheckLinearlyMove(TilePosition, MovedByMagicSprite.TilePosition))
+                        if (CheckLinearlyMove(TilePosition, MapBase.ToTilePosition(MovedByMagicSprite.PositionInWorld + MovedByMagicSpriteOffset)))
                         {
-                            PositionInWorld = MovedByMagicSprite.PositionInWorld;
+                            PositionInWorld = MovedByMagicSprite.PositionInWorld + MovedByMagicSpriteOffset;
                             SetDirection(MovedByMagicSprite.MoveDirection);
                         }
                         else
