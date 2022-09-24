@@ -91,8 +91,10 @@
     <Compile Include="Gui\Base\ListItem.cs" />
     <Compile Include="Gui\Base\ListTextItem.cs" />
     <Compile Include="Gui\Base\BackgroundColorLayer.cs" />
+    <Compile Include="Gui\NpcEquipGui.cs" />
     <Compile Include="Gui\LittleHeadGui.cs" />
     <Compile Include="Gui\SelectionGui.cs" />
+    <Compile Include="Gui\SystemMsgGui.cs" />
     <Compile Include="Gui\ToolTipGuiBase.cs" />
     <Compile Include="Gui\ToolTipGuiType2.cs" />
     <Compile Include="MagicRegionFileReader.cs" />

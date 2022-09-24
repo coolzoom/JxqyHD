@@ -399,9 +399,9 @@ namespace Engine
                     break;
                 case 2:
                     character.SetPoisonSeconds(BelongMagic.SpecialKindMilliSeconds > 0 ? BelongMagic.SpecialKindMilliSeconds / 1000.0f : BelongMagic.EffectLevel + 1, BelongMagic.NoSpecialKindEffect == 0);
-                    if (BelongCharacter.IsPlayer)
+                    if (BelongCharacter is Player || BelongCharacter.IsPartner)
                     {
-                        character.PoisonByPlayer = 1;
+                        character.PoisonByCharacterName = BelongCharacter.Name;
                     }
                     break;
                 case 3:
@@ -420,9 +420,9 @@ namespace Engine
                     if (!character.IsPoisoned)
                     {
                         character.SetPoisonSeconds(BelongCharacter.Level / 10 + 1, BelongMagic.NoSpecialKindEffect == 0);
-                        if (BelongCharacter.IsPlayer)
+                        if (BelongCharacter is Player || BelongCharacter.IsPartner)
                         {
-                            character.PoisonByPlayer = 1;
+                            character.PoisonByCharacterName = BelongCharacter.Name;
                         }
                     }
                     break;
@@ -659,6 +659,13 @@ namespace Engine
                     var player = Globals.ThePlayer;
                     var exp = Utils.GetCharacterDeathExp(Globals.ThePlayer, character);
                     player.AddExp(exp, true);
+                    if (BelongCharacter.CanLevelUp > 0 && 
+                        ((isSummonedByPlayerorPartner && BelongCharacter.SummonedByMagicSprite.BelongCharacter.IsPartner) || 
+                         BelongCharacter.IsPartner))
+                    {
+                        var npcExp = Utils.GetCharacterDeathExp(BelongCharacter, character);
+                        BelongCharacter.AddExp(npcExp);
+                    }
                 }
             }
         }
@@ -1242,7 +1249,7 @@ namespace Engine
 
             if (!_isInDestroy)
             {
-                if (BelongMagic.RangeEffect > 0)
+                if (BelongMagic.RangeEffect > 0 && (_paths == null || _paths.Count <= 2))
                 {
                     _rangeElapsedMilliseconds += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
                     if (_rangeElapsedMilliseconds >= BelongMagic.RangeTimeInerval)
@@ -1299,9 +1306,9 @@ namespace Engine
                                 if (BelongMagic.RangePoison > 0)
                                 {
                                     target.SetPoisonSeconds(BelongMagic.RangePoison/1000.0f, BelongMagic.NoSpecialKindEffect == 0);
-                                    if (BelongCharacter.IsPlayer)
+                                    if (BelongCharacter is Player || BelongCharacter.IsPartner)
                                     {
-                                        target.PoisonByPlayer = 1;
+                                        target.PoisonByCharacterName = BelongCharacter.Name;
                                     }
                                 }
                                 if (BelongMagic.RangePetrify > 0)

@@ -243,8 +243,14 @@ namespace Engine.Script
                         case "SetNpcScript":
                             ScriptExecuter.SetNpcScript(parameters, BelongObject);
                             break;
+                        case "SetAllNpcScript":
+                            ScriptExecuter.SetAllNpcScript(parameters);
+                            break;
                         case "SetNpcDeathScript":
                             ScriptExecuter.SetNpcDeathScript(parameters, BelongObject);
+                            break;
+                        case "SetAllNpcDeathScript":
+                            ScriptExecuter.SetAllNpcDeathScript(parameters);
                             break;
                         case "SetNpcLevel":
                             ScriptExecuter.SetNpcLevel(parameters, BelongObject);
@@ -689,6 +695,15 @@ namespace Engine.Script
                             break;
                         case "SetShowMapPos":
                             ScriptExecuter.SetShowMapPos(parameters);
+                            break;
+                        case "SetNpcDestination":
+                            ScriptExecuter.SetNpcDestination(parameters);
+                            break;
+                        case "SetWalkIsRun":
+                            ScriptExecuter.SetWalkIsRun(parameters);
+                            break;
+                        case "ShowSystemMsg":
+                            ScriptExecuter.ShowSystemMsg(parameters);
                             break;
                         default:
                             throw new Exception("无此函数");

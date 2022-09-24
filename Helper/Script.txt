@@ -708,6 +708,40 @@ a - 大于0表示在游戏左下角显示当前鼠标所在位置的地图坐标，等于0表示关闭显示
 比如：
 SetShowMapPos(1)
 
+SetNpcDestination(a,b,c)
+设置所有npc名字是a的，向位置(b,c)移动，中途发现敌人会攻击
+a - npc名字
+b - 位置x
+c - 位置y
+比如：
+SetNpcDestination("刺客", 83, 90)
+
+SetWalkIsRun(a)
+设置玩家是否行走是跑步
+a-大于0开启
+比如：
+SetWalkIsRun(1)
+
+
+ShowSystemMsg(a)
+ShowSystemMsg(a, b)
+显示系统消息
+a - 具体消息，支持格式
+b - 停留多少毫秒，默认3000
+比如：
+ShowSystemMsg("消息<color=Red>红色")
+ShowSystemMsg("测试消息", 6000)
+
+SetAllNpcScript(a,b)
+设置所有NPC名字是a的ScriptFile为b
+比如：
+SetAllNpcScript("刺客","对话.txt");
+
+SetAllNpcDeathScript(a,b)
+设置所有NPC名字是a的DeathScript为b
+比如：
+SetAllNpcDeathScript("刺客","死亡.txt");
+
 ///////////////////////////////////////////////////////////////////
 //////////////////    Implemented   End  /////////////////////////
 /////////////////////////////////////////////////////////////////

@@ -2,6 +2,7 @@
 using System.IO;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Windows.Forms;
 using Engine.Gui;
 using Engine.ListManager;
 using Engine.Map;
@@ -80,6 +81,7 @@ namespace Engine
         private int _exp;
         private int _levelUpExp;
         protected int _level;
+        protected int _canLevelUp;
         private int _life;
         private int _lifeMax;
         private int _thew;
@@ -172,6 +174,9 @@ namespace Engine
 
         private int _aiType;
 
+        private int _reviveMilliseconds;
+        private float _leftMillisecondsToRevive;
+
         /// <summary>
         /// List of the fixed path tile position.
         /// When load <see cref="FixedPos"/>, <see cref="FixedPos"/> is converted to list and stored on this value.
@@ -186,6 +191,69 @@ namespace Engine
         protected bool IsInLoopWalk;
 
         protected bool IsSitted;
+
+        //npc装备
+        private int _canEquip;
+        private string _headEquip;
+        private string _neckEquip;
+        private string _bodyEquip;
+        private string _backEquip;
+        private string _handEquip;
+        private string _wristEquip;
+        private string _footEquip;
+        private string _backgroundTextureEquip;
+        /// <summary>
+        /// Used to add extra life restore when equiping special equipment
+        /// </summary>
+        protected float _extraLifeRestorePercent;
+        private float _standingMilliseconds;
+
+        /// <summary>
+        /// Used to override character's FlyIni when equiping special equipment 
+        /// </summary>
+        private Magic _flyIniReplace;
+        /// <summary>
+        ///  Used to override character's FlyIni2 when equiping special equipment 
+        /// </summary>
+        private Magic _flyIni2Replace;
+
+        public Magic FlyIniReplace
+        {
+            get { return _flyIniReplace; }
+            set
+            {
+                RemoveMagicFromInfos(_flyIniReplace, AttackRadius);
+                if (value != null)
+                {
+                    RemoveMagicFromInfos(FlyIni, AttackRadius);
+                    AddMagicToInfos(value, AttackRadius);
+                }
+                else
+                {
+                    AddMagicToInfos(FlyIni, AttackRadius);
+                }
+                _flyIniReplace = value;
+            }
+        }
+
+        public Magic FlyIni2Replace
+        {
+            get { return _flyIni2Replace; }
+            set
+            {
+                RemoveMagicFromInfos(_flyIni2Replace, AttackRadius);
+                if (value != null)
+                {
+                    RemoveMagicFromInfos(FlyIni2, AttackRadius);
+                    AddMagicToInfos(value, AttackRadius);
+                }
+                else
+                {
+                    AddMagicToInfos(FlyIni2, AttackRadius);
+                }
+                _flyIni2Replace = value;
+            }
+        }
 
         #endregion Field
 
@@ -232,6 +300,60 @@ namespace Engine
         {
             get { return _dropIni; }
             set { _dropIni = value; }
+        }
+
+        public int CanEquip
+        {
+            get { return _canEquip; }
+            set { _canEquip = value; }
+        }
+
+        public string HeadEquip
+        {
+            get { return _headEquip; }
+            set { _headEquip = value; }
+        }
+
+        public string NeckEquip
+        {
+            get { return _neckEquip; }
+            set { _neckEquip = value; }
+        }
+
+        public string BodyEquip
+        {
+            get { return _bodyEquip; }
+            set { _bodyEquip = value; }
+        }
+
+        public string BackEquip
+        {
+            get { return _backEquip; }
+            set { _backEquip = value; }
+        }
+
+        public string HandEquip
+        {
+            get { return _handEquip; }
+            set { _handEquip = value; }
+        }
+
+        public string WristEquip
+        {
+            get { return _wristEquip; }
+            set { _wristEquip = value; }
+        }
+
+        public string FootEquip
+        {
+            get { return _footEquip; }
+            set { _footEquip = value; }
+        }
+
+        public string BackgroundTextureEquip
+        {
+            get { return _backgroundTextureEquip; }
+            set { _backgroundTextureEquip = value; }
         }
 
         public bool HasInteractiveTarget => _interactiveTarget != null;
@@ -432,7 +554,7 @@ namespace Engine
             }
         }
 
-        public int PoisonByPlayer { set; get; }
+        public string PoisonByCharacterName { set; get; }
 
         public float PetrifiedSeconds
         {
@@ -811,6 +933,12 @@ namespace Engine
             set { _levelUpExp = value; }
         }
 
+        public int CanLevelUp
+        {
+            get { return _canLevelUp; }
+            set { _canLevelUp = value; }
+        }
+
         public int Life
         {
             get { return _life; }
@@ -897,6 +1025,8 @@ namespace Engine
                         BodyIni.ObjFile.Count > 0);
             }
         }
+
+        public int IsBodyIniAdded { get; set; }
 
         public virtual Magic FlyIni
         {
@@ -1147,6 +1277,18 @@ namespace Engine
             set { _aiType = value; }
         }
 
+        public int ReviveMilliseconds
+        {
+            get { return _reviveMilliseconds; }
+            set { _reviveMilliseconds = value; }
+        }
+
+        public int LeftMillisecondsToRevive
+        {
+            set { _leftMillisecondsToRevive = value;}
+            get { return (int)_leftMillisecondsToRevive; }
+        }
+
         public bool IsVisibleByVariable = true;
 
         public bool IsObstacle
@@ -1199,6 +1341,9 @@ namespace Engine
                 _destinationAttackTilePosition = MapBase.ToTilePosition(value);
             }
         }
+
+        public int DestinationMapPosX { set; get; }
+        public int DestinationMapPosY { set; get; }
 
         public LinkedList<Vector2> Path
         {
@@ -1327,6 +1472,39 @@ namespace Engine
             {
                 _magicToUseWhenDeath = _magicToUseWhenDeath.GetLevel(AttackLevel);
             }
+
+            if (CanEquip > 0)
+            {
+                if (!string.IsNullOrEmpty(HeadEquip))
+                {
+                    Equiping(Utils.GetGood(HeadEquip), null, true);
+                }
+                if (!string.IsNullOrEmpty(NeckEquip))
+                {
+                    Equiping(Utils.GetGood(NeckEquip), null, true);
+                }
+                if (!string.IsNullOrEmpty(BodyEquip))
+                {
+                    Equiping(Utils.GetGood(BodyEquip), null, true);
+                }
+                if (!string.IsNullOrEmpty(BackEquip))
+                {
+                    Equiping(Utils.GetGood(BackEquip), null, true);
+                }
+                if (!string.IsNullOrEmpty(HandEquip))
+                {
+                    Equiping(Utils.GetGood(HandEquip), null, true);
+                }
+                if (!string.IsNullOrEmpty(WristEquip))
+                {
+                    Equiping(Utils.GetGood(WristEquip), null, true);
+                }
+                if (!string.IsNullOrEmpty(FootEquip))
+                {
+                    Equiping(Utils.GetGood(FootEquip), null, true);
+                }
+            }
+           
         }
 
         /// <summary>
@@ -1747,6 +1925,15 @@ namespace Engine
                     case "DropIni":
                     case "VisibleVariableName":
                     case "BuyIniString":
+                    case "HeadEquip":
+                    case "NeckEquip":
+                    case "BodyEquip":
+                    case "BackEquip":
+                    case "HandEquip":
+                    case "WristEquip":
+                    case "FootEquip":
+                    case "BackgroundTextureEquip":
+                    case "PoisonByCharacterName":
                         info.SetValue(this, keyData.Value, null);
                         break;
                     case "NpcIni":
@@ -1805,6 +1992,13 @@ namespace Engine
                         if(string.IsNullOrEmpty(BuyIniString))
                         {
                             BuyIniString = Utils.Base64Encode(str);
+                        }
+                        break;
+                    case "IsDeath":
+                    case "IsDeathInvoked":
+                        {
+                            var integerValue = int.Parse(keyData.Value);
+                            info.SetValue(this, integerValue != 0, null);
                         }
                         break;
                     default:
@@ -2013,6 +2207,7 @@ namespace Engine
             AddKey(keyDataCollection, "Exp", _exp);
             AddKey(keyDataCollection, "LevelUpExp", _levelUpExp);
             AddKey(keyDataCollection, "Level", _level);
+            AddKey(keyDataCollection, "LevelIni", LevelIniFile);
             AddKey(keyDataCollection, "Life", _life);
             AddKey(keyDataCollection, "LifeMax", _lifeMax);
             AddKey(keyDataCollection, "Thew", _thew);
@@ -2025,7 +2220,7 @@ namespace Engine
             AddKey(keyDataCollection, "Idle", _idle);
             AddKey(keyDataCollection, "NpcIni", _npcIniFileName);
             AddKey(keyDataCollection, "PoisonSeconds", _poisonSeconds);
-            AddKey(keyDataCollection, "PoisonByPlayer", PoisonByPlayer);
+            AddKey(keyDataCollection, "PoisonByCharacterName", PoisonByCharacterName);
             AddKey(keyDataCollection, "PetrifiedSeconds", _petrifiedSeconds);
             AddKey(keyDataCollection, "FrozenSeconds", _frozenSeconds);
             AddKey(keyDataCollection, "IsPoisionVisualEffect", _isPoisionVisualEffect);
@@ -2090,6 +2285,25 @@ namespace Engine
                 AddKey(keyDataCollection, "TimerScriptInterval", _timerScriptInterval);
             }
             AddKey(keyDataCollection, "DropIni", _dropIni);
+            AddKey(keyDataCollection, "ReviveMilliseconds", ReviveMilliseconds);
+            AddKey(keyDataCollection, "LeftMillisecondsToRevive", LeftMillisecondsToRevive);
+            AddKey(keyDataCollection, "IsBodyIniAdded", IsBodyIniAdded);
+            AddKey(keyDataCollection, "IsDeath", IsDeath);
+            AddKey(keyDataCollection, "IsDeathInvoked", IsDeathInvoked);
+            AddKey(keyDataCollection, "DestinationMapPosX", DestinationMapPosX);
+            AddKey(keyDataCollection, "DestinationMapPosY", DestinationMapPosY);
+
+            AddKey(keyDataCollection, "CanLevelUp", _canLevelUp);
+
+            AddKey(keyDataCollection, "CanEquip", _canEquip);
+            AddKey(keyDataCollection, "HeadEquip", _headEquip);
+            AddKey(keyDataCollection, "NeckEquip", _neckEquip);
+            AddKey(keyDataCollection, "BodyEquip", _bodyEquip);
+            AddKey(keyDataCollection, "BackEquip", _backEquip);
+            AddKey(keyDataCollection, "HandEquip", _handEquip);
+            AddKey(keyDataCollection, "WristEquip", _wristEquip);
+            AddKey(keyDataCollection, "FootEquip", _footEquip);
+            AddKey(keyDataCollection, "BackgroundTextureEquip", _backgroundTextureEquip);
         }
 
         #endregion Save load method
@@ -2430,6 +2644,11 @@ namespace Engine
         {
             if (IsDeathInvoked) return;
             IsDeathInvoked = true;
+
+            if (ReviveMilliseconds > 0)
+            {
+                LeftMillisecondsToRevive = ReviveMilliseconds;
+            }
 
             InvisibleByMagicTime = 0;
 
@@ -3099,6 +3318,249 @@ namespace Engine
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="equip"></param>
+        /// <param name="currentEquip"></param>
+        /// <param name="justEffectType">Don't applay Attack, Defend,Evade,LifeMax,ThewMax,ManaMax, just equip effect</param>
+        public void Equiping(Good equip, Good currentEquip, bool justEffectType = false)
+        {
+            //Save for restore
+            var life = Life;
+            var thew = Thew;
+            var mana = Mana;
+
+            UnEquiping(currentEquip, justEffectType);
+            if (equip != null)
+            {
+                if (!justEffectType)
+                {
+                    Attack += equip.Attack.GetOneValue();
+                    Attack2 += equip.Attack2.GetOneValue();
+                    Attack3 += equip.Attack3.GetOneValue();
+                    Defend += equip.Defend.GetOneValue();
+                    Defend2 += equip.Defend2.GetOneValue();
+                    Defend3 += equip.Defend3.GetOneValue();
+                    Evade += equip.Evade.GetOneValue();
+                    LifeMax += equip.LifeMax.GetOneValue();
+                    ThewMax += equip.ThewMax.GetOneValue();
+                    ManaMax += equip.ManaMax.GetOneValue();
+                }
+
+                switch (equip.TheEffectType)
+                {
+                    case Good.GoodEffectType.EnemyFrozen:
+                        SetFlyIniAdditionalEffect(Magic.AddonEffect.Frozen);
+                        break;
+                    case Good.GoodEffectType.EnemyPoisoned:
+                        SetFlyIniAdditionalEffect(Magic.AddonEffect.Poision);
+                        break;
+                    case Good.GoodEffectType.EnemyPetrified:
+                        SetFlyIniAdditionalEffect(Magic.AddonEffect.Petrified);
+                        break;
+                }
+
+                switch (equip.SpecialEffect.GetOneValue())
+                {
+                    case 1://不断恢复生命
+                        _extraLifeRestorePercent = equip.SpecialEffectValue.GetOneValue() / 100.0f;
+                        break;
+                }
+
+                if (!string.IsNullOrEmpty(equip.FlyIni))
+                {
+                    FlyIniReplace = Utils.GetMagic(equip.FlyIni, IsMagicFromCache).GetLevel(AttackLevel);
+                }
+                if (!string.IsNullOrEmpty(equip.FlyIni2))
+                {
+                    FlyIni2Replace = Utils.GetMagic(equip.FlyIni2, IsMagicFromCache).GetLevel(AttackLevel);
+                }
+
+                if (!string.IsNullOrEmpty(equip.AddMagicEffectName))
+                {
+                    if (!AddMagicEffectWithName.ContainsKey(equip.AddMagicEffectName))
+                    {
+                        AddMagicEffectWithName[equip.AddMagicEffectName] = new Dictionary<string, AddmagicEffectInfo>();
+                    }
+                    AddMagicEffectWithName[equip.AddMagicEffectName][equip.Name] = new AddmagicEffectInfo(equip.AddMagicEffectPercent.GetOneValue(), equip.AddMagicEffectAmount.GetOneValue());
+                }
+                else if (!string.IsNullOrEmpty(equip.AddMagicEffectType))
+                {
+                    if (!AddMagicEffectWithType.ContainsKey(equip.AddMagicEffectType))
+                    {
+                        AddMagicEffectWithType[equip.AddMagicEffectType] = new Dictionary<string, AddmagicEffectInfo>();
+                    }
+                    AddMagicEffectWithType[equip.AddMagicEffectType][equip.Name] = new AddmagicEffectInfo(equip.AddMagicEffectPercent.GetOneValue(), equip.AddMagicEffectAmount.GetOneValue());
+                }
+                else
+                {
+                    AddMagicEffectPercent += equip.AddMagicEffectPercent.GetOneValue();
+                    AddMagicEffectAmount += equip.AddMagicEffectAmount.GetOneValue();
+                }
+
+                ChangeMoveSpeedPercent += equip.ChangeMoveSpeedPercent.GetOneValue();
+
+                if (equip.MagicToUseWhenBeAttacked != null)
+                {
+                    MagicToUseWhenAttackedList.AddLast(new MagicToUseInfoItem
+                    {
+                        From = equip.FileName,
+                        Magic = equip.MagicToUseWhenBeAttacked.GetLevel(AttackLevel),
+                        Dir = equip.MagicDirectionWhenBeAttacked.GetOneValue()
+                    });
+                }
+
+                if (equip.NoNeedToEquip.GetOneValue() == 0 && !(this is Player))
+                {
+                    switch (equip.Part)
+                    {
+                        case Good.EquipPosition.None:
+                            break;
+                        case Good.EquipPosition.Head:
+                            _headEquip = equip.FileName;
+                            break;
+                        case Good.EquipPosition.Neck:
+                            _neckEquip = equip.FileName;
+                            break;
+                        case Good.EquipPosition.Body:
+                            _bodyEquip = equip.FileName;
+                            break;
+                        case Good.EquipPosition.Back:
+                            _backEquip = equip.FileName;
+                            break;
+                        case Good.EquipPosition.Hand:
+                            _handEquip = equip.FileName;
+                            break;
+                        case Good.EquipPosition.Wrist:
+                            _wristEquip = equip.FileName;
+                            break;
+                        case Good.EquipPosition.Foot:
+                            _footEquip = equip.FileName;
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException();
+                    }
+                }
+            }
+
+            //Restore
+            Life = life;
+            Thew = thew;
+            Mana = mana;
+        }
+
+        public void UnEquiping(Good equip, bool justEffectType = false)
+        {
+            if (equip != null)
+            {
+                if (!justEffectType)
+                {
+                    Attack -= equip.Attack.GetOneValue();
+                    Attack2 -= equip.Attack2.GetOneValue();
+                    Attack3 -= equip.Attack3.GetOneValue();
+                    Defend -= equip.Defend.GetOneValue();
+                    Defend2 -= equip.Defend2.GetOneValue();
+                    Defend3 -= equip.Defend3.GetOneValue();
+                    Evade -= equip.Evade.GetOneValue();
+                    LifeMax -= equip.LifeMax.GetOneValue();
+                    ThewMax -= equip.ThewMax.GetOneValue();
+                    ManaMax -= equip.ManaMax.GetOneValue();
+                }
+                switch (equip.TheEffectType)
+                {
+                    case Good.GoodEffectType.EnemyFrozen:
+                    case Good.GoodEffectType.EnemyPoisoned:
+                    case Good.GoodEffectType.EnemyPetrified:
+                        SetFlyIniAdditionalEffect(Magic.AddonEffect.None);
+                        break;
+                }
+
+                switch (equip.SpecialEffect.GetOneValue())
+                {
+                    case 1://不断恢复生命
+                        _extraLifeRestorePercent = 0.0f;
+                        break;
+                }
+
+                if (!string.IsNullOrEmpty(equip.FlyIni))
+                {
+                    FlyIniReplace = null;
+                }
+                if (!string.IsNullOrEmpty(equip.FlyIni2))
+                {
+                    FlyIni2Replace = null;
+                }
+
+                if (!string.IsNullOrEmpty(equip.AddMagicEffectName))
+                {
+                    AddMagicEffectWithName[equip.AddMagicEffectName].Remove(equip.Name);
+                    if (AddMagicEffectWithName[equip.AddMagicEffectName].Count == 0)
+                    {
+                        AddMagicEffectWithName.Remove(equip.AddMagicEffectName);
+                    }
+                }
+                else if (!string.IsNullOrEmpty(equip.AddMagicEffectType))
+                {
+                    AddMagicEffectWithType[equip.AddMagicEffectType].Remove(equip.Name);
+                    if (AddMagicEffectWithType[equip.AddMagicEffectType].Count == 0)
+                    {
+                        AddMagicEffectWithType.Remove(equip.AddMagicEffectType);
+                    }
+                }
+                else
+                {
+                    AddMagicEffectPercent -= equip.AddMagicEffectPercent.GetOneValue();
+                    AddMagicEffectAmount -= equip.AddMagicEffectAmount.GetOneValue();
+                }
+
+                ChangeMoveSpeedPercent -= equip.ChangeMoveSpeedPercent.GetOneValue();
+
+                if (equip.MagicToUseWhenBeAttacked != null)
+                {
+                    RemoveMagicToUseWhenAttackedList(equip.FileName);
+                }
+
+                if (equip.NoNeedToEquip.GetOneValue() == 0 && !(this is Player))
+                {
+                    switch (equip.Part)
+                    {
+                        case Good.EquipPosition.None:
+                            break;
+                        case Good.EquipPosition.Head:
+                            _headEquip = null;
+                            break;
+                        case Good.EquipPosition.Neck:
+                            _neckEquip = null;
+                            break;
+                        case Good.EquipPosition.Body:
+                            _bodyEquip = null;
+                            break;
+                        case Good.EquipPosition.Back:
+                            _backEquip = null;
+                            break;
+                        case Good.EquipPosition.Hand:
+                            _handEquip = null;
+                            break;
+                        case Good.EquipPosition.Wrist:
+                            _wristEquip = null;
+                            break;
+                        case Good.EquipPosition.Foot:
+                            _footEquip = null;
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException();
+                    }
+                }
+            }
+        }
+
+        protected void SetFlyIniAdditionalEffect(Magic.AddonEffect effect)
+        {
+            if (FlyIni != null) FlyIni.AdditionalEffect = effect;
+            if (FlyIni2 != null) FlyIni2.AdditionalEffect = effect;
+        }
+
+        /// <summary>
         /// Add amount of life. Amount can be negative.
         /// If list is less than 0.Character is death and <see cref="Death"/> is invoked.
         /// </summary>
@@ -3163,6 +3625,35 @@ namespace Engine
         /// <param name="magicFileName"></param>
         public virtual void AddMagic(string magicFileName) { }
 
+        public void AddExp(int amount)
+        {
+            if (LevelUpExp <= 0) return;
+            Exp += amount;
+            if (Exp > LevelUpExp)
+            {
+                GuiManager.ShowMessage(Name + "的等级提升了");
+                ToLevel(Exp);
+            }
+        }
+
+        private void ToLevel(int exp)
+        {
+            if (LevelIni != null)
+            {
+                var count = LevelIni.Count;
+                var i = 1;
+                for (; i <= count; i++)
+                {
+                    if (LevelIni.ContainsKey(i))
+                    {
+                        if (LevelIni[i].LevelUpExp > exp)
+                            break;
+                    }
+                }
+                LevelUpTo(i);
+            }
+        }
+
         /// <summary>
         /// Level up to level
         /// </summary>
@@ -3181,7 +3672,7 @@ namespace Engine
             }
             if (detail != null)
             {
-                LifeMax = detail.Life;
+                LifeMax = detail.LifeMax;
                 ThewMax = detail.ThewMax;
                 ManaMax = detail.ManaMax;
                 Life = LifeMax;
@@ -3196,6 +3687,68 @@ namespace Engine
                 Evade = detail.Evade;
                 LevelUpExp = detail.LevelUpExp;
             }
+        }
+
+        public virtual void LevelUpTo(int level)
+        {
+            if (LevelIni == null)
+            {
+                Level = level;
+                return;
+            }
+            Utils.LevelDetail detail = null, currentDetail = null;
+            if (LevelIni.ContainsKey(level) &&
+                LevelIni.ContainsKey(Level))
+            {
+                detail = LevelIni[level];
+                currentDetail = LevelIni[Level];
+            }
+
+            var isMaxLevel = false;
+            if (detail == null)
+            {
+                if (level > LevelIni.Count)
+                {
+                    isMaxLevel = true;
+                    for (var i = level; i >= 1; i--)
+                    {
+                        if (LevelIni.ContainsKey(i))
+                        {
+                            detail = LevelIni[i];
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    MessageBox.Show(string.Format("{0}的LevelIni没设置等级{1}", Name, level));
+                }
+            }
+            if (detail != null)
+            {
+                LifeMax += (detail.LifeMax - currentDetail.LifeMax);
+                ThewMax += (detail.ThewMax - currentDetail.ThewMax);
+                ManaMax += (detail.ManaMax - currentDetail.ManaMax);
+                Life = LifeMax;
+                Thew = ThewMax;
+                Mana = ManaMax;
+                Attack += (detail.Attack - currentDetail.Attack);
+                Attack2 += (detail.Attack2 - currentDetail.Attack2);
+                Attack3 += (detail.Attack3 - currentDetail.Attack3);
+                Defend += (detail.Defend - currentDetail.Defend);
+                Defend2 += (detail.Defend2 - currentDetail.Defend2);
+                Defend3 += (detail.Defend3 - currentDetail.Defend3);
+                Evade += (detail.Evade - currentDetail.Evade);
+                LevelUpExp = detail.LevelUpExp;
+            }
+
+            if(isMaxLevel)
+            {
+                Exp = 0;
+                LevelUpExp = 0;
+            }
+
+            Level = level;
         }
 
         public virtual void SetPropToLevel(int level)
@@ -3324,6 +3877,7 @@ namespace Engine
             Life = LifeMax;
             IsDeath = false;
             IsDeathInvoked = false;
+            IsBodyIniAdded = 0;
         }
 
         public void FullThew()
@@ -3601,6 +4155,17 @@ namespace Engine
                 return;
             }
 
+            if (_leftMillisecondsToRevive > 0)
+            {
+                _leftMillisecondsToRevive -= (float)gameTime.ElapsedGameTime.TotalMilliseconds;
+                if (_leftMillisecondsToRevive <= 0)
+                {
+                    FullLife();
+                    StandingImmediately(true);
+                    return;
+                }
+            }
+
             if (!IsDeathInvoked && !IsDeath)
             {
                 if (!string.IsNullOrEmpty(_timerScriptFile))
@@ -3617,6 +4182,20 @@ namespace Engine
                         }
                         ScriptManager.RunScript(_timeScriptParserCache, this);
                     }
+                }
+
+                if (_extraLifeRestorePercent > 0)
+                {
+                    if ((IsStanding() || IsWalking()) && BodyFunctionWell)
+                    {
+                        _standingMilliseconds += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
+                        if (_standingMilliseconds >= 1000)
+                        {
+                            Life += (int)(_extraLifeRestorePercent * LifeMax);
+                            _standingMilliseconds = 0f;
+                        }
+                    }
+                    else _standingMilliseconds = 0f;
                 }
             }
 
@@ -3741,14 +4320,27 @@ namespace Engine
                 {
                     _poisonedMilliSeconds = 0;
                     AddLife(-10);
-                    if (IsDeathInvoked && PoisonByPlayer > 0)
+                    if (IsDeathInvoked && !string.IsNullOrEmpty(PoisonByCharacterName))
                     {
-                        var exp = Utils.GetCharacterDeathExp(Globals.ThePlayer, this);
-                        Globals.ThePlayer.AddExp(exp, true);
-                        PoisonByPlayer = 0;
+                        if (PoisonByCharacterName == Globals.ThePlayer.Name)
+                        {
+                            var exp = Utils.GetCharacterDeathExp(Globals.ThePlayer, this);
+                            Globals.ThePlayer.AddExp(exp, true);
+                        }
+                        else
+                        {
+                            var npc = NpcManager.GetNpc(PoisonByCharacterName);
+                            if (npc != null && npc.CanLevelUp > 0)
+                            {
+                                var exp = Utils.GetCharacterDeathExp(npc, this);
+                                npc.AddExp(exp);
+                            }
+                        }
+
+                        PoisonByCharacterName = null;
                     }
                 }
-                if (PoisonSeconds <= 0) PoisonByPlayer = 0;
+                if (PoisonSeconds <= 0) PoisonByCharacterName = null;
             }
 
             if (PetrifiedSeconds > 0)

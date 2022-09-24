@@ -208,3 +208,37 @@ BuyIniFile=奸商.ini
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 AIType - 默认0，使用原版的ai
 1 - 随机移动，随机攻击，但被攻击后会主动攻击
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+ReviveMilliseconds - 默认0，如果大于0表示多少毫秒后复活
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+DestinationMapPosX - 默认0
+DestinationMapPosY - 默认0
+效果同脚本SetNpcDestination(a,b,c)，向位置(DestinationMapPosX,DestinationMapPosY)移动，中途发现敌人会攻击
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+Player有效：
+WalkIsRun - 默认0，如果大于0，表示行走是跑步
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+CanLevelUp - 默认0，如果大于0，表示如果该NPC为队友（Kind=3），则该NPC打死敌人可以获得经验，可以升级。
+注：
+LevelIni,Exp,LevelUpExp都要配置才能生效
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+CanEquip - 默认0，大于0，表示该队友可以装备，通过点击左上角的队友头像(头像在asf\ui\littlehead里，有相应的队友名字的asf文件存在就可以)来呼出装备界面
+队友装备（值是装备物品文件名）：
+HeadEquip - 头
+NeckEquip - 脖子
+BodyEquip - 身体
+BackEquip - 背
+HandEquip - 手
+WristEquip - 手腕
+FootEquip - 脚
+BackgroundTextureEquip - 不设置用默认的（UI_Settings.ini文件里的NpcEquip项目），设置了装备界面用这个背景，可以是asf，png，jpg文件的路径，比如：asf\ui\common\panel7b.asf

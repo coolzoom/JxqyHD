@@ -32,6 +32,7 @@ namespace Engine.Gui
         public static MemoGui MemoInterface;
         public static StateGui StateInterface;
         public static EquipGui EquipInterface;
+        public static NpcEquipGui NpcEquipInterface;
         public static BottomGui BottomInterface;
         public static ColumnGui ColumnInterface;
         public static TopGui TopInterface;
@@ -41,6 +42,7 @@ namespace Engine.Gui
 
         public static ToolTipGuiBase ToolTipInterface;
         public static MessageGui MessageInterface;
+        public static SystemMsgGui SystemMsgInterface;
         public static DialogGui DialogInterface;
         public static LittleHeadGui LittleHeadInterface;
 
@@ -130,6 +132,10 @@ namespace Engine.Gui
             _allGuiItems.AddLast(EquipInterface);
             _panels.AddLast(EquipInterface);
 
+            NpcEquipInterface = new NpcEquipGui();
+            _allGuiItems.AddLast(NpcEquipInterface);
+            _panels.AddLast(NpcEquipInterface);
+
             var toolTipUseType = int.Parse(Setttings.Sections["ToolTip_Use_Type"]["UseType"]);
             if (toolTipUseType == 1)
             {
@@ -147,6 +153,9 @@ namespace Engine.Gui
             MessageInterface = new MessageGui();
             _allGuiItems.AddLast(MessageInterface);
             _panels.AddLast(MessageInterface);
+
+            SystemMsgInterface = new SystemMsgGui();
+            _allGuiItems.AddLast(SystemInterface);
 
             DialogInterface = new DialogGui();
             _allGuiItems.AddLast(DialogInterface);
@@ -205,7 +214,10 @@ namespace Engine.Gui
         {
             PlayInterfaceShowMissSound(!GoodsInterface.IsShow);
             if (GoodsInterface.IsShow)
+            {
                 GoodsInterface.IsShow = false;
+                NpcEquipInterface.IsShow = false;
+            }
             else
             {
                 GoodsInterface.IsShow = true;
@@ -237,6 +249,7 @@ namespace Engine.Gui
                 XiuLianInterface.IsShow = true;
                 StateInterface.IsShow = false;
                 EquipInterface.IsShow = false;
+                NpcEquipInterface.IsShow = false;
             }
         }
 
@@ -250,6 +263,7 @@ namespace Engine.Gui
                 StateInterface.IsShow = true;
                 XiuLianInterface.IsShow = false;
                 EquipInterface.IsShow = false;
+                NpcEquipInterface.IsShow = false;
             }
         }
 
@@ -263,6 +277,7 @@ namespace Engine.Gui
                 EquipInterface.IsShow = true;
                 XiuLianInterface.IsShow = false;
                 StateInterface.IsShow = false;
+                NpcEquipInterface.IsShow = false;
             }
         }
 
@@ -278,6 +293,7 @@ namespace Engine.Gui
             GoodsInterface.UpdateItems();
             BottomInterface.UpdateGoodsItems();
             EquipInterface.UpdateItems();
+            NpcEquipInterface.UpdateItems();
         }
 
         public static void UpdateGoodItemView(int listIndex)
@@ -371,6 +387,11 @@ namespace Engine.Gui
         public static void ShowMessage(string message)
         {
             MessageInterface.ShowMessage(message);
+        }
+
+        public static void ShowSystemMsg(string message, float stayMilliSecond)
+        {
+            SystemMsgInterface.ShowMsg(message, stayMilliSecond);
         }
 
         public static void ShowDialog(string text, int portraitIndex = -1)
@@ -734,7 +755,9 @@ namespace Engine.Gui
                     MemoInterface.Update(gameTime);
                     StateInterface.Update(gameTime);
                     EquipInterface.Update(gameTime);
+                    NpcEquipInterface.Update(gameTime);
                     ToolTipInterface.Update(gameTime);
+                    LittleHeadInterface.Update(gameTime);
                 }
 
                 if (!Globals.TheGame.IsGamePlayPaused)
@@ -761,6 +784,7 @@ namespace Engine.Gui
             }
 
             MessageInterface.Update(gameTime);
+            SystemMsgInterface.Update(gameTime);
 
             _lastMouseState = mouseState;
             _lastKeyboardState = keyboardState;
@@ -789,10 +813,12 @@ namespace Engine.Gui
                 MemoInterface.Draw(spriteBatch);
                 StateInterface.Draw(spriteBatch);
                 EquipInterface.Draw(spriteBatch);
+                NpcEquipInterface.Draw(spriteBatch);
                 ColumnInterface.Draw(spriteBatch);
                 BottomInterface.Draw(spriteBatch);
                 ToolTipInterface.Draw(spriteBatch);
                 MessageInterface.Draw(spriteBatch);
+                SystemMsgInterface.Draw(spriteBatch);
                 DialogInterface.Draw(spriteBatch);
                 SelectionInterface.Draw(spriteBatch);
 

@@ -729,6 +729,16 @@ namespace Engine.Script
             }
         }
 
+        public static void SetAllNpcScript(List<string> parameters)
+        {
+            var npcs = NpcManager.GetAllNpcs(Utils.RemoveStringQuotes(parameters[0]));
+            var scripFileName = Utils.RemoveStringQuotes(parameters[1]);
+            foreach (var npc in npcs)
+            {
+                npc.ScriptFile = scripFileName;
+            }
+        }
+
         public static void SetNpcDeathScript(List<string> parameters, object belongObject)
         {
             if(parameters.Count == 2)
@@ -784,6 +794,16 @@ namespace Engine.Script
                 File.WriteAllText(savePath, data.ToString(), Globals.LocalEncoding);
             }
             
+        }
+
+        public static void SetAllNpcDeathScript(List<string> parameters)
+        {
+            var npcs = NpcManager.GetAllNpcs(Utils.RemoveStringQuotes(parameters[0]));
+            var scripFileName = Utils.RemoveStringQuotes(parameters[1]);
+            foreach (var npc in npcs)
+            {
+                npc.DeathScript = scripFileName;
+            }
         }
 
         public static void SetNpcLevel(List<string> parameters, object belongObject)
@@ -2340,6 +2360,38 @@ namespace Engine.Script
         {
             var v = int.Parse(parameters[0]);
             Globals.ScriptShowMapPos = v > 0;
+        }
+
+        public static void SetNpcDestination(List<string> parameters)
+        {
+            var name = Utils.RemoveStringQuotes(parameters[0]);
+            var npcs = NpcManager.GetAllNpcs(name);
+            var x = int.Parse(parameters[1]);
+            var y = int.Parse(parameters[2]);
+            foreach (var npc in npcs)
+            {
+                npc.DestinationMapPosX = x;
+                npc.DestinationMapPosY = y;
+            }
+        }
+
+        public static void SetWalkIsRun(List<string> parameters)
+        {
+            if (Globals.ThePlayer != null)
+            {
+                Globals.ThePlayer.WalkIsRun = int.Parse(parameters[0]);
+            }
+        }
+
+        public static void ShowSystemMsg(List<string> parameters)
+        {
+            var msg = Utils.RemoveStringQuotes(parameters[0]);
+            var stayTime = 3000.0f;
+            if (parameters.Count == 2)
+            {
+                stayTime = int.Parse(parameters[1]);
+            }
+            GuiManager.ShowSystemMsg(msg, stayTime);
         }
     }
 }
