@@ -24,6 +24,7 @@ namespace Engine
         private LinkedList<Sprite> _superModeDestroySprites;
         private List<Character> _leapedCharacters;
         private List<Character> _carrayUser4Characters = new List<Character>();
+        private List<Character> _passThroughedCharacters;
         private Character _closedCharecter;
         private float _flyMagicElapsedMilliSeconds;
         private float _summonElapsedMilliseconds;
@@ -713,12 +714,12 @@ namespace Engine
             bool characterHited = false;
             if (BelongMagic.AttackAll > 0)
             {
-                characterHited = CharacterHited(NpcManager.GetFighter(TilePosition));
+                characterHited = CharacterHited(CanCollide(NpcManager.GetFighter(TilePosition)));
             }
             else if (BelongCharacter.IsPlayer || BelongCharacter.IsFighterFriend)
             {
                 var target = NpcManager.GetEnemy(TilePosition, true);
-                characterHited = CharacterHited(target);
+                characterHited = CharacterHited(CanCollide(target));
             }
             else if (BelongCharacter.IsEnemy)
             {
@@ -727,17 +728,34 @@ namespace Engine
                 {
                     target = NpcManager.GetOtherGropEnemy(BelongCharacter.Group, TilePosition);
                 }
-                characterHited = CharacterHited(target);
+                characterHited = CharacterHited(CanCollide(target));
             }
             else if (BelongCharacter.IsNoneFighter)
             {
-                characterHited = CharacterHited(NpcManager.GetNonneutralFighter(TilePosition));
+                characterHited = CharacterHited(CanCollide(NpcManager.GetNonneutralFighter(TilePosition)));
             }
 
             if (!characterHited && !CheckMagicDiscard())
             {
                 CheckMagicExchangeUser();
             }
+        }
+
+        private Character CanCollide(Character character)
+        {
+            if (character != null)
+            {
+                if (BelongMagic.PassThrough > 0)
+                {
+                    if (_passThroughedCharacters.Contains(character))
+                    {
+                        return null;
+                    }
+                    _passThroughedCharacters.Add(character);
+                }
+            }
+
+            return character;
         }
 
         private bool CheckMagicDiscard()
@@ -806,6 +824,11 @@ namespace Engine
                 //Initilize leap
                 _leapedCharacters = new List<Character>();
                 _canLeap = true;
+            }
+
+            if (BelongMagic.PassThrough > 0)
+            {
+                _passThroughedCharacters = new List<Character>();
             }
 
             //Start play FlyingImage
