@@ -1357,8 +1357,11 @@ namespace Engine.Script
             {
                 _video = Utils.GetVideo(fileName);
                 if (_video == null) return;
+                // Video.Dispose()/finalizer throws on DesktopGL; suppress it.
+                GC.SuppressFinalize(_video);
                 _videoPlayer = new VideoPlayer();
                 if (_videoPlayer == null) return;
+                GC.SuppressFinalize(_videoPlayer);
                 _videoDrawColor = drawColor;
 
                 _videoPlayer.Play(_video);
@@ -1394,7 +1397,8 @@ namespace Engine.Script
         {
             if (_videoPlayer != null)
             {
-                _videoPlayer.Stop();
+                try { _videoPlayer.Stop(); }
+                catch (Exception) { }
             }
         }
 
@@ -1402,7 +1406,9 @@ namespace Engine.Script
         {
             if (_videoPlayer != null && _videoPlayer.State != MediaState.Stopped)
             {
-                var texture = _videoPlayer.GetTexture();
+                Texture2D texture = null;
+                try { texture = _videoPlayer.GetTexture(); }
+                catch (Exception) { }
                 if (texture != null)
                 {
                     spriteBatch.Draw(texture,

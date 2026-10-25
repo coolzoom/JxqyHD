@@ -26,16 +26,22 @@ namespace Engine
             {
                 var name = Path.GetFileNameWithoutExtension(fileName);
                 Song song = null;
-                // Loose audio files (music/*.ogg|.mp3|.wav) work without the
-                // content pipeline; fall back to Content.Load for .xnb.
-                foreach (var ext in new[] { ".ogg", ".mp3", ".wav", ".wma" })
+                // Loose audio files work without the content pipeline; both
+                // legacy Content/music and plain music/ are searched.
+                foreach (var dir in new[] { @"Content/music/", @"music/" })
                 {
-                    var file = Utils.FixPath(@"music/" + name + ext);
-                    if (File.Exists(file))
+                    foreach (var ext in new[] { ".ogg", ".mp3", ".wav" })
                     {
-                        song = Song.FromUri(name, new Uri(Path.GetFullPath(file)));
-                        break;
+                        var file = Utils.FixPath(dir + name + ext);
+                        if (!File.Exists(file))
+                            file = Utils.FixPath(dir + name.ToLowerInvariant() + ext);
+                        if (File.Exists(file))
+                        {
+                            song = Song.FromUri(name, new Uri(Path.GetFullPath(file)));
+                            break;
+                        }
                     }
+                    if (song != null) break;
                 }
                 if (song == null)
                     song = Globals.TheGame.Content.Load<Song>(@"music/" + name);
