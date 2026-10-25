@@ -114,8 +114,8 @@ namespace Engine.Gui
             spriteBatch.Draw(_fadeTexture,
                 new Rectangle(0,
                     0,
-                    Globals.WindowWidth,
-                    Globals.WindowHeight),
+                    Globals.TheGame.GraphicsDevice.PresentationParameters.BackBufferWidth,
+                    Globals.TheGame.GraphicsDevice.PresentationParameters.BackBufferHeight),
                 Color.White);
 
             _messageText.Draw(spriteBatch);

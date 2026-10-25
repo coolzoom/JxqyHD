@@ -270,8 +270,8 @@ namespace Engine
             var mouseState = Globals.GetMouseState();
             var region = new Rectangle(0,
                 0,
-                Globals.WindowWidth,
-                Globals.WindowHeight);
+                Globals.TheGame.GraphicsDevice.PresentationParameters.BackBufferWidth,
+                Globals.TheGame.GraphicsDevice.PresentationParameters.BackBufferHeight);
             return region.Contains(mouseState.X, mouseState.Y);
         }
 
