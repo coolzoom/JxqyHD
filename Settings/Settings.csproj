@@ -19,5 +19,6 @@
   <ItemGroup>
     <Compile Include="Program.cs" />
     <Compile Include="../Tools/Shared/ToolPaths.cs" Link="ToolPaths.cs" />
+    <Compile Include="../Tools/Shared/ToolApp.cs" Link="ToolApp.cs" />
   </ItemGroup>
 </Project>

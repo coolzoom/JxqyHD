@@ -10,7 +10,7 @@ namespace GameStarter
         [STAThread]
         static void Main()
         {
-            new Application(Eto.Platform.Detect).Run(new MainForm());
+            JxqyTools.ToolApp.Run<MainForm>();
         }
     }
 
