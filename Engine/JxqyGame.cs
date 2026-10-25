@@ -37,6 +37,9 @@ namespace Engine
         private double _totalInactivedSeconds;
         private const double MaxInactivedSeconds = 1.0;
         private bool _isInactivedReachMaxInterval;
+        private bool _pendingResize;
+        private const int MinWindowWidth = 800;
+        private const int MinWindowHeight = 600;
 
         #region End Ads
 
@@ -361,11 +364,43 @@ namespace Engine
             MapBase.ViewWidth = _graphics.PreferredBackBufferWidth;
             MapBase.ViewHeight = _graphics.PreferredBackBufferHeight;
 
+            //Free resize: new logical resolution, bigger window sees more map.
+            Window.AllowUserResizing = true;
+            Window.ClientSizeChanged += (s, e) => _pendingResize = true;
+
             base.Initialize();
+        }
+
+        /// <summary>Apply a window resize: new backbuffer, view and render target.</summary>
+        private void ApplyPendingResize()
+        {
+            _pendingResize = false;
+            if (_graphics.IsFullScreen) return;
+
+            var w = Math.Max(MinWindowWidth, Window.ClientBounds.Width);
+            var h = Math.Max(MinWindowHeight, Window.ClientBounds.Height);
+            if (_graphics.PreferredBackBufferWidth != w ||
+                _graphics.PreferredBackBufferHeight != h)
+            {
+                _graphics.PreferredBackBufferWidth = w;
+                _graphics.PreferredBackBufferHeight = h;
+                _graphics.ApplyChanges();
+            }
+
+            Globals.WindowWidth = _graphics.PreferredBackBufferWidth;
+            Globals.WindowHeight = _graphics.PreferredBackBufferHeight;
+            Globals.TheCarmera.ViewWidth = Globals.WindowWidth;
+            Globals.TheCarmera.ViewHeight = Globals.WindowHeight;
+            MapBase.ViewWidth = Globals.WindowWidth;
+            MapBase.ViewHeight = Globals.WindowHeight;
+            ReCreateRenderTarget();
+            Gui.GuiManager.Adjust(Globals.WindowWidth, Globals.WindowHeight);
         }
 
         private void ReCreateRenderTarget()
         {
+            _renderTarget?.Dispose();
+            _snapShotRenderTarget?.Dispose();
             _renderTarget = new RenderTarget2D(GraphicsDevice,
                 Globals.WindowWidth,
                 Globals.WindowHeight,
@@ -423,6 +458,8 @@ namespace Engine
         {
             try
             {
+                if (_pendingResize) ApplyPendingResize();
+
                 //Update mouse scroll state.
                 MouseScrollHandler.Update();
 
