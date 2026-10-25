@@ -174,8 +174,8 @@ namespace Engine.Gui
             spriteBatch.Draw(_fadeTexture,
                 new Rectangle(0,
                     0,
-                    Globals.TheGame.GraphicsDevice.PresentationParameters.BackBufferWidth,
-                    Globals.TheGame.GraphicsDevice.PresentationParameters.BackBufferHeight),
+                    Globals.WindowWidth,
+                    Globals.WindowHeight),
                 Color.White);
 
             foreach (var i in Selection)
