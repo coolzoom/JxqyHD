@@ -2,6 +2,8 @@
 # 剑侠情缘 跨平台启动菜单 (macOS/Linux)
 set -e
 cd "$(dirname "$0")"
+# SDL/MonoGame may leave the tty raw on exit or Ctrl+C; always restore.
+trap 'stty sane 2>/dev/null || true' EXIT INT TERM
 
 CFG=Debug
 GAME_DLL="Jxqy/bin/$CFG/net10.0/Jxqy.dll"
@@ -40,11 +42,14 @@ build_all() {
 run_game() {
     if [ ! -f "$GAME_DLL" ]; then echo "未编译，请先执行 7) 一键编译"; return; fi
     (cd Data && dotnet "../$GAME_DLL" ${1:+$1})
+    # SDL/MonoGame can leave the tty in raw mode; restore sane settings.
+    stty sane 2>/dev/null || true
 }
 
 run_dll() {
     if [ ! -f "$1" ]; then echo "未编译，请先执行 7) 一键编译"; return; fi
     dotnet "$1"
+    stty sane 2>/dev/null || true
 }
 
 while true; do
