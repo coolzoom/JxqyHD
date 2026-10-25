@@ -74,7 +74,7 @@ namespace Engine
         {
             if (LevelIni == null)
             {
-                LevelIni = Utils.GetLevelLists(@"ini\level\level-npc.ini");
+                LevelIni = Utils.GetLevelLists(@"ini/level/level-npc.ini");
             }
             Initlize();
         }
@@ -84,7 +84,7 @@ namespace Engine
         {
             if (LevelIni == null)
             {
-                LevelIni = Utils.GetLevelLists(@"ini\level\level-npc.ini");
+                LevelIni = Utils.GetLevelLists(@"ini/level/level-npc.ini");
             }
 
             Initlize();

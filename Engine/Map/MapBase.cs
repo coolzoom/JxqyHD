@@ -375,7 +375,7 @@ namespace Engine.Map
             try
             {
                 var parser = new FileIniDataParser();
-                var data = parser.ReadFile(filePath, Globals.LocalEncoding);
+                var data = parser.ReadFile(Utils.FixPath(filePath), Globals.LocalEncoding);
                 foreach (var section in data.Sections)
                 {
                     var list = new Dictionary<int, string>();
@@ -411,7 +411,7 @@ namespace Engine.Map
                         data[key].AddKey(k.ToString(), list[k]);
                     }
                 }
-                File.WriteAllText(path, data.ToString(), Globals.LocalEncoding);
+                File.WriteAllText( Utils.FixPath(path), data.ToString(), Globals.LocalEncoding);
             }
             catch (Exception exception)
             {
@@ -424,8 +424,8 @@ namespace Engine.Map
             _ingnoredTrapsIndex.Clear();
             try
             {
-                if(!File.Exists(filePath)) return;
-                var data = new FileIniDataParser().ReadFile(filePath, Globals.LocalEncoding);
+                if(!File.Exists( Utils.FixPath(filePath))) return;
+                var data = new FileIniDataParser().ReadFile(Utils.FixPath(filePath), Globals.LocalEncoding);
                 var section = Utils.GetFirstSection(data);
                 foreach (var keyData in section)
                 {
@@ -451,7 +451,7 @@ namespace Engine.Map
                     section.AddKey(i.ToString(), _ingnoredTrapsIndex[i].ToString());
                 }
 
-                File.WriteAllText(filePath, data.ToString(), Globals.LocalEncoding);
+                File.WriteAllText( Utils.FixPath(filePath), data.ToString(), Globals.LocalEncoding);
             }
             catch (Exception exception)
             {
@@ -636,7 +636,7 @@ namespace Engine.Map
 
         public void LoadMap(string mapFileName)
         {
-            var path = @"map\" + mapFileName;
+            var path = @"map/" + mapFileName;
             try
             {
                 IsOk = LoadMapInternal(path);
@@ -649,7 +649,7 @@ namespace Engine.Map
             Globals.TheCarmera.WorldHeight = MapPixelHeight;
             _mapFileNameWithoutExtension = Path.GetFileNameWithoutExtension(path);
             _mapFileName = Path.GetFileName(path);
-            LittelMapTexture = Utils.LoadTexture2DFromFile(@"map\littlemap\" + _mapFileNameWithoutExtension + ".png");
+            LittelMapTexture = Utils.LoadTexture2DFromFile(@"map/littlemap/" + _mapFileNameWithoutExtension + ".png");
 
             GC.Collect();
         }

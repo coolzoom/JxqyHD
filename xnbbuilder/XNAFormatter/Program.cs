@@ -1,19 +1,14 @@
-﻿using System;
-using System.Windows.Forms;
+using System;
+using Eto.Forms;
 
 namespace XNAFormatter
 {
     static class Program
     {
-        /// <summary>
-        /// The main entry point for the application.
-        /// </summary>
         [STAThread]
         static void Main()
         {
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new XNAFormatter());
+            new Application(Eto.Platform.Detect).Run(new FormatterForm());
         }
     }
 }

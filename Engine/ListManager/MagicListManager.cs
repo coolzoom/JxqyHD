@@ -60,7 +60,7 @@ namespace Engine.ListManager
             try
             {
                 var parser = new FileIniDataParser();
-                var data = parser.ReadFile(filePath, Globals.LocalEncoding);
+                var data = parser.ReadFile(Utils.FixPath(filePath), Globals.LocalEncoding);
                 foreach (var sectionData in data.Sections)
                 {
                     int head;
@@ -139,7 +139,7 @@ namespace Engine.ListManager
                 }
                 data["Head"].AddKey("Count", count.ToString());
                 //Write to file
-                File.WriteAllText(filePath, data.ToString(), Globals.LocalEncoding);
+                File.WriteAllText( Utils.FixPath(filePath), data.ToString(), Globals.LocalEncoding);
             }
             catch (Exception exception)
             {
@@ -174,7 +174,7 @@ namespace Engine.ListManager
             {
                 //do nothing
             }
-            else if (File.Exists(filePath))
+            else if (File.Exists( Utils.FixPath(filePath)))
             {
                 ReplaceMagicList[filePath] = new MagicItemInfo[MaxMagic + 1];
                 ReplaceMagicListHide[filePath] = new MagicItemInfo[MaxMagic + 1];

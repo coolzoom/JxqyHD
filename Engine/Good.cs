@@ -243,7 +243,7 @@ namespace Engine
                         break;
                     case "Image":
                     case "Icon":
-                        info.SetValue(this, Utils.GetAsf(@"asf\goods\", value), null);
+                        info.SetValue(this, Utils.GetAsf(@"asf/goods/", value), null);
                         break;
                     case "Part":
                         {
@@ -308,7 +308,7 @@ namespace Engine
                 FileName = Path.GetFileName(filePath);
                 var parser = new FileIniDataParser();
                 parser.Parser.Configuration.NotTrimValue = true;
-                var data = parser.ReadFile(filePath, Globals.LocalEncoding);
+                var data = parser.ReadFile(Utils.FixPath(filePath), Globals.LocalEncoding);
                 foreach (var keyValue in data["Init"])
                 {
                     AssignToValue(keyValue.KeyName, keyValue.Value);
@@ -328,7 +328,7 @@ namespace Engine
             var data = new IniData();
             data.Sections.AddSection("Init");
             Save(data["Init"]);
-            File.WriteAllText(filePath, data.ToString(), Globals.LocalEncoding);
+            File.WriteAllText( Utils.FixPath(filePath), data.ToString(), Globals.LocalEncoding);
         }
 
         public void Save(KeyDataCollection keyDataCollection)

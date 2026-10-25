@@ -16,7 +16,7 @@ namespace Engine
             var info = new Dictionary<int, ResStateInfo>();
             try
             {
-                var data = new FileIniDataParser().ReadFile(path, Globals.LocalEncoding);
+                var data = new FileIniDataParser().ReadFile(Utils.FixPath(path), Globals.LocalEncoding);
                 foreach (var section in data.Sections)
                 {
                     var state = GetState(section.SectionName, type);
@@ -56,14 +56,14 @@ namespace Engine
             switch (type)
             {
                 case ResType.Npc:
-                    asfPathBase = @"asf\character\";
-                    if (!File.Exists(asfPathBase + asfFileName))
+                    asfPathBase = @"asf/character/";
+                    if (!File.Exists( Utils.FixPath(asfPathBase + asfFileName)))
                     {
-                        asfPathBase = @"asf\interlude\";
+                        asfPathBase = @"asf/interlude/";
                     }
                     break;
                 case ResType.Obj:
-                    asfPathBase = @"asf\object\";
+                    asfPathBase = @"asf/object/";
                     break;
             }
             return asfPathBase;
@@ -75,9 +75,9 @@ namespace Engine
             switch (type)
             {
                 case ResType.Npc:
-                    return @"mpc\character\";
+                    return @"mpc/character/";
                 case ResType.Obj:
-                    return @"mpc\object\";
+                    return @"mpc/object/";
                 default:
                     throw new ArgumentOutOfRangeException(nameof(type), type, null);
             }

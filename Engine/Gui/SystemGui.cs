@@ -25,7 +25,7 @@ namespace Engine.Gui
 
             //Button
             cfg = GuiManager.Setttings.Sections["System_SaveLoad_Btn"];
-            var asf = Utils.GetAsf(@"asf\ui\system", "saveload.asf");
+            var asf = Utils.GetAsf(@"asf/ui/system", "saveload.asf");
             var clickedSound = Utils.GetSoundEffect(cfg["Sound"]);
             _saveloadButton = new GuiItem(this,
                 new Vector2(int.Parse(cfg["Left"]), int.Parse(cfg["Top"])),
@@ -38,7 +38,7 @@ namespace Engine.Gui
                 clickedSound);
 
             cfg = GuiManager.Setttings.Sections["System_Option_Btn"];
-            asf = Utils.GetAsf(@"asf\ui\system", "option.asf");
+            asf = Utils.GetAsf(@"asf/ui/system", "option.asf");
             clickedSound = Utils.GetSoundEffect(cfg["Sound"]);
             _opetionButton = new GuiItem(this,
                 new Vector2(int.Parse(cfg["Left"]), int.Parse(cfg["Top"])),
@@ -51,7 +51,7 @@ namespace Engine.Gui
                 clickedSound);
 
             cfg = GuiManager.Setttings.Sections["System_Exit_Btn"];
-            asf = Utils.GetAsf(@"asf\ui\system", "quit.asf");
+            asf = Utils.GetAsf(@"asf/ui/system", "quit.asf");
             clickedSound = Utils.GetSoundEffect(cfg["Sound"]);
             _exitButton = new GuiItem(this,
                 new Vector2(int.Parse(cfg["Left"]), int.Parse(cfg["Top"])),
@@ -64,7 +64,7 @@ namespace Engine.Gui
                 clickedSound);
 
             cfg = GuiManager.Setttings.Sections["System_Return_Btn"];
-            asf = Utils.GetAsf(@"asf\ui\system", "return.asf");
+            asf = Utils.GetAsf(@"asf/ui/system", "return.asf");
             clickedSound = Utils.GetSoundEffect(cfg["Sound"]);
             _returnButton = new GuiItem(this,
                 new Vector2(int.Parse(cfg["Left"]), int.Parse(cfg["Top"])),

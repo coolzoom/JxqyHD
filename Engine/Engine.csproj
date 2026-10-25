@@ -1,197 +1,23 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <ProjectGuid>{823E410E-FD01-4AFD-A1B9-EA84D6CE155D}</ProjectGuid>
-    <ProjectTypeGuids>{6D335F3A-9D43-41b4-9D22-F6F17C4BE596};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Engine</RootNamespace>
     <AssemblyName>Engine</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
-    <XnaFrameworkVersion>v4.0</XnaFrameworkVersion>
-    <XnaPlatform>Windows</XnaPlatform>
-    <XnaProfile>Reach</XnaProfile>
-    <XnaCrossPlatformGroupID>4694a933-b5a7-4706-9c88-97118d7d38b6</XnaCrossPlatformGroupID>
-    <XnaOutputType>Library</XnaOutputType>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\x86\Debug</OutputPath>
-    <DefineConstants>DEBUG;TRACE;WINDOWS</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <NoStdLib>true</NoStdLib>
-    <UseVSHostingProcess>false</UseVSHostingProcess>
-    <PlatformTarget>x86</PlatformTarget>
-    <XnaCompressContent>false</XnaCompressContent>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\x86\Release</OutputPath>
-    <DefineConstants>TRACE;WINDOWS</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <NoStdLib>true</NoStdLib>
-    <UseVSHostingProcess>false</UseVSHostingProcess>
-    <PlatformTarget>x86</PlatformTarget>
-    <XnaCompressContent>true</XnaCompressContent>
+    <TargetFramework>net10.0</TargetFramework>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="C5, Version=2.3.5280.26713, Culture=neutral, PublicKeyToken=282361b99ded7e8e, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\C5.2.3.0.1\lib\net40\C5.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Xna.Framework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86" />
-    <Reference Include="Microsoft.Xna.Framework.Game, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86" />
-    <Reference Include="Microsoft.Xna.Framework.Graphics, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86" />
-    <Reference Include="Microsoft.Xna.Framework.GamerServices, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86" />
-    <Reference Include="Microsoft.Xna.Framework.Video, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=MSIL" />
-    <Reference Include="mscorlib" />
-    <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL" />
-    <Reference Include="System" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Xml" />
-    <Reference Include="System.Core">
-      <RequiredTargetFramework>4.0</RequiredTargetFramework>
-    </Reference>
-    <Reference Include="System.Xml.Linq">
-      <RequiredTargetFramework>4.0</RequiredTargetFramework>
-    </Reference>
-    <Reference Include="System.Net" />
-    <Reference Include="TiledSharp, Version=0.15.5889.20321, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\TiledSharp.0.15\lib\TiledSharp.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
+    <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.4.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <PackageReference Include="C5" Version="3.0.0" />
+    <PackageReference Include="TiledSharp" Version="1.0.1" />
+    <!-- Vendored ini-parser 2.1.2 fork (has custom NotTrimValue option used by Good.cs) -->
+    <Compile Include="..\packages\ini-parser-2.1.2\src\IniFileParser\**\*.cs"
+             Exclude="..\packages\ini-parser-2.1.2\src\IniFileParser\Properties\AssemblyInfo.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Asf.cs" />
-    <Compile Include="AttrInt.cs" />
-    <Compile Include="AttrString.cs" />
-    <Compile Include="BackgroundMusic.cs" />
-    <Compile Include="Benchmark\Fps.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Carmera.cs" />
-    <Compile Include="Character.cs" />
-    <Compile Include="Collider.cs" />
-    <Compile Include="GameState.cs" />
-    <Compile Include="Globals.cs" />
-    <Compile Include="Good.cs" />
-    <Compile Include="GoodDrop.cs" />
-    <Compile Include="Gui\Base\Bmp.cs" />
-    <Compile Include="Gui\Base\LineText.cs" />
-    <Compile Include="Gui\Base\ListItem.cs" />
-    <Compile Include="Gui\Base\ListTextItem.cs" />
-    <Compile Include="Gui\Base\BackgroundColorLayer.cs" />
-    <Compile Include="Gui\NpcEquipGui.cs" />
-    <Compile Include="Gui\LittleHeadGui.cs" />
-    <Compile Include="Gui\SelectionGui.cs" />
-    <Compile Include="Gui\SelectionMultipleGui.cs" />
-    <Compile Include="Gui\SystemMsgGui.cs" />
-    <Compile Include="Gui\ToolTipGuiBase.cs" />
-    <Compile Include="Gui\ToolTipGuiType2.cs" />
-    <Compile Include="Lib\BezierCurve.cs" />
-    <Compile Include="MagicRegionFileReader.cs" />
-    <Compile Include="Map\JxqyMap.cs" />
-    <Compile Include="Map\TiledMap.cs" />
-    <Compile Include="MouseScrollHandler.cs" />
-    <Compile Include="Gui\BottomGui.cs" />
-    <Compile Include="Gui\BuyGui.cs" />
-    <Compile Include="Gui\ColumnGui.cs" />
-    <Compile Include="Gui\Base\ColumnView.cs" />
-    <Compile Include="Gui\DialogGui.cs" />
-    <Compile Include="Gui\DragDropItem.cs" />
-    <Compile Include="Gui\EquipGui.cs" />
-    <Compile Include="Gui\GoodsGui.cs" />
-    <Compile Include="Gui\LittleMapGui.cs" />
-    <Compile Include="Gui\SaveLoadGui.cs" />
-    <Compile Include="Gui\SystemGui.cs" />
-    <Compile Include="Gui\TimerGui.cs" />
-    <Compile Include="Gui\TitleGui.cs" />
-    <Compile Include="JxqyGame.cs" />
-    <Compile Include="ListManager\GoodsListManager.cs" />
-    <Compile Include="Gui\Base\GuiItem.cs" />
-    <Compile Include="Gui\GuiManager.cs" />
-    <Compile Include="Gui\Base\ListView.cs" />
-    <Compile Include="Gui\MagicGui.cs" />
-    <Compile Include="ListManager\MagicListManager.cs" />
-    <Compile Include="Gui\MemoGui.cs" />
-    <Compile Include="ListManager\MemoListManager.cs" />
-    <Compile Include="Gui\MessageGui.cs" />
-    <Compile Include="Gui\MouseGui.cs" />
-    <Compile Include="Gui\ScrollBar.cs" />
-    <Compile Include="Gui\StateGui.cs" />
-    <Compile Include="Gui\Base\TextGui.cs" />
-    <Compile Include="Gui\Base\Texture.cs" />
-    <Compile Include="Gui\ToolTipGuiType1.cs" />
-    <Compile Include="Gui\TopGui.cs" />
-    <Compile Include="Gui\XiuLianGui.cs" />
-    <Compile Include="IMoveControlInWorld.cs" />
-    <Compile Include="InfoDrawer.cs" />
-    <Compile Include="IScreen.cs" />
-    <Compile Include="ListManager\PartnerList.cs" />
-    <Compile Include="Log.cs" />
-    <Compile Include="Magic.cs" />
-    <Compile Include="MagicManager.cs" />
-    <Compile Include="MagicSprite.cs" />
-    <Compile Include="Map\MapBase.cs" />
-    <Compile Include="Message\MessageDelegater.cs" />
-    <Compile Include="Mpc.cs" />
-    <Compile Include="Npc.cs" />
-    <Compile Include="NpcManager.cs" />
-    <Compile Include="Obj.cs" />
-    <Compile Include="ObjManager.cs" />
-    <Compile Include="PathFinder.cs" />
-    <Compile Include="Player.cs" />
-    <Compile Include="ResFile.cs" />
-    <Compile Include="Script\ScriptExecuter.cs" />
-    <Compile Include="Script\ScriptManager.cs" />
-    <Compile Include="Script\ScriptParser.cs" />
-    <Compile Include="Script\ScriptRunner.cs" />
-    <Compile Include="Shd.cs" />
-    <Compile Include="SoundManager.cs" />
-    <Compile Include="Sprite.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ListManager\TalkTextDetail.cs" />
-    <Compile Include="ListManager\TalkTextList.cs" />
-    <Compile Include="Storage\Loader.cs" />
-    <Compile Include="Storage\Saver.cs" />
-    <Compile Include="Storage\StorageBase.cs" />
-    <Compile Include="TextureBase.cs" />
-    <Compile Include="TextureGenerator.cs" />
-    <Compile Include="Utils.cs" />
-    <Compile Include="Weather\Rain.cs" />
-    <Compile Include="Weather\RainDrop.cs" />
-    <Compile Include="Weather\Snow.cs" />
-    <Compile Include="Weather\SnowFlake.cs" />
-    <Compile Include="Weather\WeatherManager.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\packages\ini-parser-2.1.2\src\IniFileParser\INIFileParser.csproj">
-      <Project>{5e46dcf4-c473-4171-9f9b-f3910b5ec407}</Project>
-      <Name>INIFileParser</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup />
-  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
-  <Import Project="$(MSBuildExtensionsPath)\Microsoft\XNA Game Studio\Microsoft.Xna.GameStudio.targets" />
-  <!--
-      To modify your build process, add your task inside one of the targets below and uncomment it. 
-      Other similar extension points exist, see Microsoft.Common.targets.
-      <Target Name="BeforeBuild">
-      </Target>
-      <Target Name="AfterBuild">
-      </Target>
-    -->
 </Project>

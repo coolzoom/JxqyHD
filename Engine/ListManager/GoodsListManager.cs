@@ -83,7 +83,7 @@ namespace Engine.ListManager
             try
             {
                 var parser = new FileIniDataParser();
-                var data = parser.ReadFile(filePath, Globals.LocalEncoding);
+                var data = parser.ReadFile(Utils.FixPath(filePath), Globals.LocalEncoding);
                 foreach (var sectionData in data.Sections)
                 {
                     int head;
@@ -125,7 +125,7 @@ namespace Engine.ListManager
                 }
                 data["Head"].AddKey("Count", count.ToString());
                 //Write to file
-                File.WriteAllText(filePath, data.ToString(), Globals.LocalEncoding);
+                File.WriteAllText( Utils.FixPath(filePath), data.ToString(), Globals.LocalEncoding);
             }
             catch (Exception exception)
             {
@@ -376,7 +376,7 @@ namespace Engine.ListManager
                 }
                     break;
                 default:
-                    Log.LogMessage(@"GoodsListType 设置错误，请检查Content\ui\UI_Settings.ini文件");
+                    Log.LogMessage(@"GoodsListType 设置错误，请检查Content/ui/UI_Settings.ini文件");
                     return false;
             }
 
@@ -705,7 +705,7 @@ namespace Engine.ListManager
                 }
                     break;
                 default:
-                    Log.LogMessage(@"GoodsListType 设置错误，请检查Content\ui\UI_Settings.ini文件");
+                    Log.LogMessage(@"GoodsListType 设置错误，请检查Content/ui/UI_Settings.ini文件");
                     return false;
             }
             return false;

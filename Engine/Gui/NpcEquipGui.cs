@@ -48,7 +48,7 @@ namespace Engine.Gui
                 {
                     fileName = "panel7" + (char)('a' + value) + ".asf";
                 }
-                BaseTexture = new Texture(Utils.GetAsf(@"asf\ui\common\", fileName));
+                BaseTexture = new Texture(Utils.GetAsf(@"asf/ui/common/", fileName));
             }
         }
 
@@ -141,7 +141,7 @@ namespace Engine.Gui
                 }
                 else
                 {
-                    using (var fs = File.Open(character.BackgroundTextureEquip, FileMode.Open))
+                    using (var fs = File.Open(Utils.FixPath(character.BackgroundTextureEquip), FileMode.Open))
                     {
                         BaseTexture = new Texture(new Asf(
                             Texture2D.FromStream(Globals.TheGame.GraphicsDevice, fs)));

@@ -75,7 +75,7 @@ namespace Engine.Map
                 else
                 {
                     var mpc = new Mpc(
-                        _mpcDirPath + "\\" +
+                        _mpcDirPath + "/" +
                         Globals.LocalEncoding.GetString(mpcFileName, 0, i));
                     _mpcList.Add(mpc);
                     if (buf[offset + 36] == 1) _loopingList.Add(mpc);
@@ -96,7 +96,7 @@ namespace Engine.Map
             _mpcDirPath = Globals.LocalEncoding.GetString(buf, offset + 1, len);
             if (string.IsNullOrEmpty(_mpcDirPath))
             {
-                _mpcDirPath = "mpc\\map\\" + mapFileNameWithoutExtension;
+                _mpcDirPath = "mpc/map/" + mapFileNameWithoutExtension;
             }
             offset = 68;
             _mapColumnCounts = Utils.GetLittleEndianIntegerFromByteArray(buf, ref offset);
@@ -209,7 +209,7 @@ namespace Engine.Map
 
         protected override bool LoadMapInternal(string mapFilePath)
         {
-            var buf = File.ReadAllBytes(mapFilePath);
+            var buf = File.ReadAllBytes( Utils.FixPath(mapFilePath));
             return LoadMapFromBuffer(buf, Path.GetFileNameWithoutExtension(mapFilePath));
         }
 

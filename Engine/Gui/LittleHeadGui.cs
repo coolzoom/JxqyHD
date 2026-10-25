@@ -55,7 +55,7 @@ namespace Engine.Gui
                 if (string.IsNullOrEmpty(name)) continue;
                 if (!_headIco.ContainsKey(name))
                 {
-                    _headIco[name] = Utils.GetAsf(@"asf\ui\littlehead\", name + ".asf");
+                    _headIco[name] = Utils.GetAsf(@"asf/ui/littlehead/", name + ".asf");
                 }
                 if (_headIco[name] == null) continue;
 

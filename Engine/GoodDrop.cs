@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Windows.Forms;
 
 namespace Engine
 {
@@ -27,7 +26,7 @@ namespace Engine
                 default:
                     return null;
             }
-            var obj = new Obj(@"ini\obj\" + fileName);
+            var obj = new Obj(@"ini/obj/" + fileName);
             obj.TilePosition = character.TilePosition;
             var level = character.Level;
             if (character.ExpBonus > 0)
@@ -144,7 +143,7 @@ namespace Engine
                         ini = ini.Substring(0, startIdx);
                     }
                 }
-                var obj = new Obj(@"ini\obj\" + ini);
+                var obj = new Obj(@"ini/obj/" + ini);
                 obj.TilePosition = character.TilePosition;
                 return obj;
             }

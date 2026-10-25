@@ -15,7 +15,13 @@ namespace Engine
     //Must load GlobalData when game is initialize
     public static class Globals
     {
-        public static readonly Encoding LocalEncoding = Encoding.GetEncoding(936);
+        private static Encoding GetLocalEncoding()
+        {
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            return Encoding.GetEncoding(936);
+        }
+
+        public static readonly Encoding LocalEncoding = GetLocalEncoding();
         public const int BaseSpeed = 100;
         public const int MinChangeMoveSpeedPercent = -90;
         public const int MagicBasespeed = 100;
@@ -146,7 +152,7 @@ namespace Engine
                 WindowHeight = mode.Height;
 
                 var parser = new FileIniDataParser();
-                var data = parser.ReadFile(GameIniFilePath, LocalEncoding);
+                var data = parser.ReadFile(Utils.FixPath(GameIniFilePath), LocalEncoding);
                 var setting = data[SettingSectionName];
                 int value;
                 if (int.TryParse(setting["FullScreen"], out value))
@@ -206,13 +212,13 @@ namespace Engine
             try
             {
                 IniData data;
-                if (!File.Exists(GameIniFilePath))
+                if (!File.Exists( Utils.FixPath(GameIniFilePath)))
                 {
                     data = new IniData();
                 }
                 else
                 {
-                    data = new FileIniDataParser().ReadFile(GameIniFilePath, LocalEncoding);
+                    data = new FileIniDataParser().ReadFile(Utils.FixPath(GameIniFilePath), LocalEncoding);
                 }
                 var section = data[SettingSectionName];
                 if (section == null)
@@ -240,7 +246,7 @@ namespace Engine
                     section["MaxMagicUnit"] = MagicManager.MaxMagicUnit.ToString();
                     section["RunSpeedFold"] = RunSpeedFold.ToString();
                 }
-                File.WriteAllText(GameIniFilePath, data.ToString(), LocalEncoding);
+                File.WriteAllText( Utils.FixPath(GameIniFilePath), data.ToString(), LocalEncoding);
             }
             catch (Exception exception)
             {

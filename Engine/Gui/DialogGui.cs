@@ -21,15 +21,15 @@ namespace Engine.Gui
 
         private void LoadPortrait()
         {
-            const string path = @"ini\ui\dialog\HeadFile.ini";
+            const string path = @"ini/ui/dialog/HeadFile.ini";
             _portraitList = new Dictionary<int, Texture>();
             try
             {
                 var parser = new FileIniDataParser();
-                var data = parser.ReadFile(path, Globals.LocalEncoding);
+                var data = parser.ReadFile(Utils.FixPath(path), Globals.LocalEncoding);
                 foreach (var item in data["PORTRAIT"])
                 {
-                    _portraitList[int.Parse(item.KeyName)] = new Texture(Utils.GetAsf(@"asf\portrait\", item.Value));
+                    _portraitList[int.Parse(item.KeyName)] = new Texture(Utils.GetAsf(@"asf/portrait/", item.Value));
                 }
             }
             catch (Exception exception)

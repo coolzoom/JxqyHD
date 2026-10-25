@@ -54,7 +54,7 @@ namespace Engine
             {
                 _fileName = fileName;
                 var filePath = Utils.GetNpcObjFilePath(fileName);
-                var lines = File.ReadAllLines(filePath, Globals.LocalEncoding);
+                var lines = File.ReadAllLines( Utils.FixPath(filePath), Globals.LocalEncoding);
                 Load(lines);
             }
             catch (Exception)
@@ -102,7 +102,7 @@ namespace Engine
 
         public static void AddObj(string fileName, int tileX, int tileY, int direction)
         {
-            var path = @"ini\obj\" + fileName;
+            var path = @"ini/obj/" + fileName;
             var obj = new Obj(path);
             obj.TilePosition = new Vector2(tileX, tileY);
             obj.SetDirection(direction);
@@ -268,7 +268,7 @@ namespace Engine
                 fileName = _fileName;
             }
             _fileName = fileName;
-            var path = @"save\game\" + fileName;
+            var path = @"save/game/" + fileName;
             try
             {
                 var count = _list.Count;
@@ -286,7 +286,7 @@ namespace Engine
                     var obj = node.Value;
                     obj.Save(data[sectionName]);
                 }
-                File.WriteAllText(path, data.ToString(), Globals.LocalEncoding);
+                File.WriteAllText( Utils.FixPath(path), data.ToString(), Globals.LocalEncoding);
             }
             catch (Exception exception)
             {

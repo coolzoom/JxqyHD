@@ -73,7 +73,7 @@ namespace Engine
             Globals.TheMessageSender.SendLogMessage(msg);
             if (LogToFileOn)
             {
-                File.AppendAllText(LogFilename, msg);
+                File.AppendAllText( Utils.FixPath(LogFilename), msg);
             }
         }
 
@@ -84,7 +84,7 @@ namespace Engine
             Globals.TheMessageSender.SendLogMessage(msg);
             if (LogToFileOn)
             {
-                File.AppendAllText(LogFilename, msg);
+                File.AppendAllText( Utils.FixPath(LogFilename), msg);
             }
         }
 

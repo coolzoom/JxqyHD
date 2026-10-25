@@ -641,7 +641,7 @@ namespace Engine.Script
                 var path = Utils.GetNpcObjFilePath(objFileName);
 
                 var list = new List<KeyDataCollection>();
-                var data = new FileIniDataParser().ReadFile(path, Globals.LocalEncoding);
+                var data = new FileIniDataParser().ReadFile(Utils.FixPath(path), Globals.LocalEncoding);
                 var count = int.Parse(data["Head"]["Count"]);
                 for (var i = 0; i < count; i++)
                 {
@@ -668,8 +668,8 @@ namespace Engine.Script
                         }
                     }
                 }
-                var savePath = @"save\game\" + objFileName;
-                File.WriteAllText(savePath, data.ToString(), Globals.LocalEncoding);
+                var savePath = @"save/game/" + objFileName;
+                File.WriteAllText( Utils.FixPath(savePath), data.ToString(), Globals.LocalEncoding);
             }
         }
 
@@ -697,7 +697,7 @@ namespace Engine.Script
                 var path = Utils.GetNpcObjFilePath(npcFileName);
 
                 var list = new List<KeyDataCollection>();
-                var data = new FileIniDataParser().ReadFile(path, Globals.LocalEncoding);
+                var data = new FileIniDataParser().ReadFile(Utils.FixPath(path), Globals.LocalEncoding);
                 var count = int.Parse(data["Head"]["Count"]);
                 for (var i = 0; i < count; i++)
                 {
@@ -724,8 +724,8 @@ namespace Engine.Script
                         }
                     }
                 }
-                var savePath = @"save\game\" + npcFileName;
-                File.WriteAllText(savePath, data.ToString(), Globals.LocalEncoding);
+                var savePath = @"save/game/" + npcFileName;
+                File.WriteAllText( Utils.FixPath(savePath), data.ToString(), Globals.LocalEncoding);
             }
         }
 
@@ -763,7 +763,7 @@ namespace Engine.Script
                 var path = Utils.GetNpcObjFilePath(npcFileName);
 
                 var list = new List<KeyDataCollection>();
-                var data = new FileIniDataParser().ReadFile(path, Globals.LocalEncoding);
+                var data = new FileIniDataParser().ReadFile(Utils.FixPath(path), Globals.LocalEncoding);
                 var count = int.Parse(data["Head"]["Count"]);
                 for (var i = 0; i < count; i++)
                 {
@@ -790,8 +790,8 @@ namespace Engine.Script
                         }
                     }
                 }
-                var savePath = @"save\game\" + npcFileName;
-                File.WriteAllText(savePath, data.ToString(), Globals.LocalEncoding);
+                var savePath = @"save/game/" + npcFileName;
+                File.WriteAllText( Utils.FixPath(savePath), data.ToString(), Globals.LocalEncoding);
             }
             
         }
@@ -824,7 +824,7 @@ namespace Engine.Script
             var target = Globals.PlayerKindCharacter;
             if (target != null)
             {
-                var path = @"ini\level\" + Utils.RemoveStringQuotes(parameters[0]);
+                var path = @"ini/level/" + Utils.RemoveStringQuotes(parameters[0]);
                 target.LevelIni = Utils.GetLevelLists(path);
             }
         }
@@ -958,7 +958,7 @@ namespace Engine.Script
 
         public static void AddRandGoods(List<string> parameters)
         {
-            var fileName = GetRandItem(@"ini\buy\" + Utils.RemoveStringQuotes(parameters[0]));
+            var fileName = GetRandItem(@"ini/buy/" + Utils.RemoveStringQuotes(parameters[0]));
             if (string.IsNullOrEmpty(fileName)) return;
             AddGoods(fileName);
         }
@@ -968,7 +968,7 @@ namespace Engine.Script
             try
             {
                 var parser = new FileIniDataParser();
-                var data = parser.ReadFile(filePath, Globals.LocalEncoding);
+                var data = parser.ReadFile(Utils.FixPath(filePath), Globals.LocalEncoding);
                 var count = int.Parse(data["Header"]["Count"]);
                 var rand = Globals.TheRandom.Next(1, count + 1);
                 return data[rand.ToString()]["IniFile"];
@@ -1353,13 +1353,22 @@ namespace Engine.Script
 
         public static void PlayMovie(string fileName, Color drawColor)
         {
-            _video = Utils.GetVideo(fileName);
-            if (_video == null) return;
-            _videoPlayer = new VideoPlayer();
-            if (_videoPlayer == null) return;
-            _videoDrawColor = drawColor;
+            try
+            {
+                _video = Utils.GetVideo(fileName);
+                if (_video == null) return;
+                _videoPlayer = new VideoPlayer();
+                if (_videoPlayer == null) return;
+                _videoDrawColor = drawColor;
 
-            _videoPlayer.Play(_video);
+                _videoPlayer.Play(_video);
+            }
+            catch (Exception e)
+            {
+                // Video playback is not supported on this platform; skip movie.
+                _videoPlayer = null;
+                Log.LogFileLoadError("Movie", fileName, e);
+            }
         }
 
         public static void PlayMovie(string fileName)
@@ -1414,7 +1423,7 @@ namespace Engine.Script
 
         public static void SaveMapTrap()
         {
-            MapBase.SaveTrap(@"save\game\Traps.ini");
+            MapBase.SaveTrap(@"save/game/Traps.ini");
         }
 
         public static void SaveNpc(List<string> parameters)

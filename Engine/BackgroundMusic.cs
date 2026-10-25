@@ -24,7 +24,7 @@ namespace Engine
             }
             try
             {
-                var path = @"music\" + Path.GetFileNameWithoutExtension(fileName);
+                var path = @"music/" + Path.GetFileNameWithoutExtension(fileName);
                 var song = Globals.TheGame.Content.Load<Song>(path);
                 MediaPlayer.IsRepeating = true;
                 MediaPlayer.Play(song);

@@ -16,7 +16,7 @@ namespace Engine.Gui
         private readonly GuiItem[] _guiItems;
         public TitleGui()
         {
-            using (var fs = File.Open(GuiManager.Setttings.Sections["Title"]["BackgroundImage"], FileMode.Open))
+            using (var fs = File.Open(Utils.FixPath(GuiManager.Setttings.Sections["Title"]["BackgroundImage"]), FileMode.Open))
             {
                 BaseTexture = new Texture(new Asf(
                 Texture2D.FromStream(Globals.TheGame.GraphicsDevice, fs)));

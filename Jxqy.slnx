@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/xnbbuilder/">
+    <Project Path="xnbbuilder/XNAFormatter/XNAFormatter.csproj" />
+  </Folder>
+  <Folder Name="/xnbbuilder/xnaconverter/">
+    <Project Path="xnbbuilder/xnaconverter/XNABuilder.csproj" />
+  </Folder>
+  <Project Path="Engine/Engine.csproj" />
+  <Project Path="GameEditor/GameEditor.csproj" />
+  <Project Path="GameStarter/GameStarter.csproj" />
+  <Project Path="Jxqy/Jxqy.csproj" />
+  <Project Path="Settings/Settings.csproj" />
+</Solution>

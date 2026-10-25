@@ -14,10 +14,10 @@ namespace Engine.ListManager
         /// </summary>
         public static void Initialize()
         {
-            const string path = @"Content\TalkIndex.txt";
+            const string path = @"Content/TalkIndex.txt";
             try
             {
-                var lines = File.ReadAllLines(path, Globals.LocalEncoding);
+                var lines = File.ReadAllLines( Utils.FixPath(path), Globals.LocalEncoding);
                 var regex = new Regex(@"^\[([0-9]+),([0-9]+)\](.*)");
                 foreach (var line in lines)
                 {

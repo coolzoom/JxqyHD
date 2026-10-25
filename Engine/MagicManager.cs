@@ -969,7 +969,7 @@ namespace Engine
                     if (!string.IsNullOrEmpty(body.ReviveNpcIni) && (magic.ReviveBodyMaxCount == 0 || magic.ReviveBodyMaxCount > count))
                     {
                         count++;
-                        var npc = new Npc(@"ini\npc\" + body.ReviveNpcIni);
+                        var npc = new Npc(@"ini/npc/" + body.ReviveNpcIni);
                         npc.Relation = ((user as Player != null) || (user.Relation == (int)Character.RelationType.Friend)) ? (int)Character.RelationType.Friend : (int)Character.RelationType.Enemy;
                         npc.TilePosition = body.TilePosition;
                         npc.Dir = body.Dir;

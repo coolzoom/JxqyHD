@@ -79,7 +79,7 @@ namespace Engine
             {
                 _fileName = fileName;
             }
-            var path = @"save\game\" + fileName;
+            var path = @"save/game/" + fileName;
             try
             {
                 var count = 0;
@@ -113,7 +113,7 @@ namespace Engine
                     count++;
                 }
                 data["Head"].AddKey("Count", count.ToString());
-                File.WriteAllText(path, data.ToString(), Globals.LocalEncoding);
+                File.WriteAllText( Utils.FixPath(path), data.ToString(), Globals.LocalEncoding);
             }
             catch (Exception exception)
             {
@@ -569,7 +569,7 @@ namespace Engine
 
         public static Npc AddNpc(string fileName, int tileX, int tileY, int direction)
         {
-            var path = @"ini\npc\" + fileName;
+            var path = @"ini/npc/" + fileName;
             var npc = new Npc(path);
             npc.TilePosition = new Vector2(tileX, tileY);
             npc.SetDirection(direction);

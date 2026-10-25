@@ -9,24 +9,44 @@ namespace Engine.Storage
 {
     public static class StorageBase
     {
-        public const string GameIniFilePath = @"save\game\Game.ini";
+        public const string GameIniFilePath = @"save/game/Game.ini";
         public const string GameIniFileName = "Game.ini";
-        public const string MemoListIniFilePath = @"save\game\memo.ini";
-        public const string TrapsFilePath = @"save\game\Traps.ini";
-        public const string TrapIndexIgnoreListFilePath = @"save\game\TrapIndexIgnore.ini";
-        public const string SaveGameDirectory = @"save\game";
-        public const string SaveRpgDirectory = @"save\rpg";
+        public const string MemoListIniFilePath = @"save/game/memo.ini";
+        public const string TrapsFilePath = @"save/game/Traps.ini";
+        public const string TrapIndexIgnoreListFilePath = @"save/game/TrapIndexIgnore.ini";
+        public const string SaveGameDirectory = @"save/game";
+        public const string SaveRpgDirectory = @"save/rpg";
         public const int SaveIndexBegin = 0;
         public const int SaveIndexEnd = 7;
 
+        /// <summary>
+        /// Create all directories used by save system if missing.
+        /// </summary>
+        public static void EnsureSaveDirectories()
+        {
+            try
+            {
+                Directory.CreateDirectory(SaveGameDirectory);
+                Directory.CreateDirectory(@"save/Shot");
+                for (var i = SaveIndexBegin; i <= SaveIndexEnd; i++)
+                {
+                    Directory.CreateDirectory(SaveRpgDirectory + i);
+                }
+            }
+            catch (Exception exception)
+            {
+                Log.LogFileSaveError("Create save directories", SaveGameDirectory, exception);
+            }
+        }
+
         public static string PlayerFilePath
         {
-            get {return @"save\game\" + "Player" + Globals.PlayerIndex + ".ini";}
+            get {return @"save/game/" + "Player" + Globals.PlayerIndex + ".ini";}
         }
 
         public static string PartnerFilePath
         {
-            get { return @"save\game\" + "partner" + Globals.PlayerIndex + ".ini"; }
+            get { return @"save/game/" + "partner" + Globals.PlayerIndex + ".ini"; }
         }
 
         public static string PartnerFileName
@@ -36,17 +56,17 @@ namespace Engine.Storage
 
         public static string MagicListFilePath
         {
-            get { return @"save\game\" + "Magic" + Globals.PlayerIndex + ".ini"; }
+            get { return @"save/game/" + "Magic" + Globals.PlayerIndex + ".ini"; }
         }
 
         public static string GoodsListFilePath
         {
-            get {return @"save\game\" + "Goods" + Globals.PlayerIndex + ".ini";}
+            get {return @"save/game/" + "Goods" + Globals.PlayerIndex + ".ini";}
         }
 
         public static string GetMagicListPath(string fileName)
         {
-            return SaveGameDirectory + @"\" + fileName;
+            return SaveGameDirectory + @"/" + fileName;
         }
 
         public static bool IsIndexInRange(int index)
@@ -71,7 +91,7 @@ namespace Engine.Storage
 
         public static void DeletAllFiles(string path)
         {
-            var pathInfo = new DirectoryInfo(path);
+            var pathInfo = new DirectoryInfo( Utils.FixPath(path));
             var files = pathInfo.GetFiles();
             var dirs = pathInfo.GetDirectories();
             foreach (var fileInfo in files)
@@ -86,7 +106,7 @@ namespace Engine.Storage
 
         public static void CopyAllFilesToDirectory(string directory, string targetDirectory)
         {
-            var files = new DirectoryInfo(directory).GetFiles();
+            var files = new DirectoryInfo( Utils.FixPath(directory)).GetFiles();
             foreach (var file in files)
             {
                 var path = Path.Combine(targetDirectory, file.Name);
@@ -119,9 +139,9 @@ namespace Engine.Storage
             for (var i = 1; i <= 7; i++)
             {
                 DeletAllFiles(SaveRpgDirectory + i);
-                if (File.Exists(GetSaveSnapShotFilePath(i)))
+                if (File.Exists( Utils.FixPath(GetSaveSnapShotFilePath(i))))
                 {
-                    File.Delete(GetSaveSnapShotFilePath(i));
+                    File.Delete( Utils.FixPath(GetSaveSnapShotFilePath(i)));
                 }
             }
         }
@@ -131,12 +151,12 @@ namespace Engine.Storage
             var path = SaveRpgDirectory + saveIndex;
             path = Path.Combine(path, GameIniFileName);
             var time = "";
-            if (File.Exists(path))
+            if (File.Exists( Utils.FixPath(path)))
             {
                 try
                 {
                     var parser = new FileIniDataParser();
-                    var data = parser.ReadFile(path, Globals.LocalEncoding);
+                    var data = parser.ReadFile(Utils.FixPath(path), Globals.LocalEncoding);
                     time = data["State"]["Time"];
                 }
                 catch (Exception exception)
@@ -149,7 +169,7 @@ namespace Engine.Storage
 
         public static string GetSaveSnapShotFilePath(int saveIndex)
         {
-            return @"save\Shot\" + "rpg" + saveIndex + ".png";
+            return @"save/Shot/" + "rpg" + saveIndex + ".png";
         }
 
         /// <summary>
@@ -163,7 +183,7 @@ namespace Engine.Storage
             var path = GetSaveSnapShotFilePath(saveIndex);
             try
             {
-                using (var stream = new FileStream(path, FileMode.Create))
+                using (var stream = new FileStream( Utils.FixPath(path), FileMode.Create))
                 {
                     texture2D.SaveAsPng(stream, texture2D.Width, texture2D.Height);
                 }
@@ -184,7 +204,7 @@ namespace Engine.Storage
             if (!IsIndexInRange(saveIndex)) return false;
              var path = SaveRpgDirectory + saveIndex;
             path = Path.Combine(path, GameIniFileName);
-            return File.Exists(path);
+            return File.Exists( Utils.FixPath(path));
         }
     }
 }

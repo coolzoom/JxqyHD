@@ -79,7 +79,7 @@ namespace Engine
             try
             {
                 FilePath = path;
-                var buf = File.ReadAllBytes(path);
+                var buf = File.ReadAllBytes( Utils.FixPath(path));
                 var offset = 0;
                 if (!LoadHead(buf, ref offset))
                 {

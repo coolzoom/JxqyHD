@@ -309,7 +309,7 @@ namespace Engine
 
             try
             {
-                var lines = File.ReadAllLines(filePath, Globals.LocalEncoding);
+                var lines = File.ReadAllLines( Utils.FixPath(filePath), Globals.LocalEncoding);
                 return Load(lines);
             }
             catch (Exception exception)
@@ -334,7 +334,7 @@ namespace Engine
         public void SetObjFile(string fileName)
         {
             _objFileName = fileName;
-            _objFile = ResFile.ReadFile(@"ini\objres\" + fileName, ResType.Obj);
+            _objFile = ResFile.ReadFile(Utils.FixPath(@"ini/objres/" + fileName), ResType.Obj);
         }
 
         public void SetWaveFile(string fileName)

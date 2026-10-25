@@ -1,8 +1,9 @@
 using Engine;
+using System.Linq;
+using System.Text;
 
 namespace Jxqy
 {
-#if WINDOWS || XBOX
     static class Program
     {
         /// <summary>
@@ -10,12 +11,12 @@ namespace Jxqy
         /// </summary>
         static void Main(string[] args)
         {
-            using (var jxqyGame = new JxqyGame())
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            var isEditMode = args.Any(a => a == "--edit" || a == "-edit");
+            using (var jxqyGame = new JxqyGame(isEditMode))
             {
                 jxqyGame.Run();
             }
         }
     }
-#endif
 }
-

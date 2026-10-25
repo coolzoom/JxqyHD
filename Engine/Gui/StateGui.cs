@@ -31,14 +31,14 @@ namespace Engine.Gui
                 var fileName = "panel5.asf";
                 if (value > 0)
                     fileName = "panel5" + (char)('a' + value) + ".asf"; ;
-                BaseTexture = new Texture(Utils.GetAsf(@"asf\ui\common\", fileName));
+                BaseTexture = new Texture(Utils.GetAsf(@"asf/ui/common/", fileName));
             }
         }
 
         public StateGui()
         {
             var cfg = GuiManager.Setttings.Sections["State"];
-            BaseTexture = new Texture(Utils.GetAsf(@"asf\ui\common\", "panel5.asf"));
+            BaseTexture = new Texture(Utils.GetAsf(@"asf/ui/common/", "panel5.asf"));
             Width = BaseTexture.Width;
             Height = BaseTexture.Height;
             Position = new Vector2(

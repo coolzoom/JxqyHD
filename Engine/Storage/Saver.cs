@@ -74,7 +74,7 @@ namespace Engine.Storage
             ScriptManager.SaveParallelScript(data["ParallelScript"]);
 
             //Wirte to file
-            File.WriteAllText(StorageBase.GameIniFilePath, data.ToString(), Globals.LocalEncoding);
+            File.WriteAllText( Utils.FixPath(StorageBase.GameIniFilePath), data.ToString(), Globals.LocalEncoding);
         }
 
         public static void SavePlayer()
@@ -82,7 +82,7 @@ namespace Engine.Storage
             var data = new IniData();
             data.Sections.AddSection("Init");
             Globals.ThePlayer.Save(data["Init"]);
-            File.WriteAllText(StorageBase.PlayerFilePath, data.ToString(), Globals.LocalEncoding);
+            File.WriteAllText( Utils.FixPath(StorageBase.PlayerFilePath), data.ToString(), Globals.LocalEncoding);
         }
 
         private static void SavePartner()

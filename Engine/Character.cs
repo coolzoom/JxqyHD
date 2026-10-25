@@ -2,7 +2,6 @@
 using System.IO;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Windows.Forms;
 using Engine.Gui;
 using Engine.Lib;
 using Engine.ListManager;
@@ -2080,7 +2079,7 @@ namespace Engine
                     case "BodyIni":
                         if (!string.IsNullOrEmpty(keyData.Value))
                         {
-                            info.SetValue(this, new Obj(@"ini\obj\" + keyData.Value), null);
+                            info.SetValue(this, new Obj(@"ini/obj/" + keyData.Value), null);
                         }
                         break;
                     case "Defence":
@@ -2088,7 +2087,7 @@ namespace Engine
                         break;
                     case "LevelIni":
                         LevelIniFile = keyData.Value;
-                        info.SetValue(this, Utils.GetLevelLists(@"ini\level\" + keyData.Value), null);
+                        info.SetValue(this, Utils.GetLevelLists(@"ini/level/" + keyData.Value), null);
                         break;
                     case "FlyIni":
                         _flyIni = Utils.GetMagic(keyData.Value, IsMagicFromCache);
@@ -2125,8 +2124,8 @@ namespace Engine
                         info.SetValue(this, int.Parse(keyData.Value) == 1, null);
                         break;
                     case "BuyIniFile":
-                        var path = @"ini\buy\" + keyData.Value;
-                        var str = File.ReadAllText(path, Globals.LocalEncoding);
+                        var path = @"ini/buy/" + keyData.Value;
+                        var str = File.ReadAllText( Utils.FixPath(path), Globals.LocalEncoding);
                         if(string.IsNullOrEmpty(BuyIniString))
                         {
                             BuyIniString = Utils.Base64Encode(str);
@@ -2318,7 +2317,7 @@ namespace Engine
         {
             try
             {
-                var data = new FileIniDataParser().ReadFile(filePath, Globals.LocalEncoding);
+                var data = new FileIniDataParser().ReadFile(Utils.FixPath(filePath), Globals.LocalEncoding);
                 return Load(Utils.GetFirstSection(data));
             }
             catch (Exception exception)
@@ -3018,21 +3017,21 @@ namespace Engine
                 SetState(CharacterState.Death);
                 if (IsFrozened && _isFronzenVisualEffect)
                 {
-                    if (FrozenDie == null) FrozenDie = Utils.GetAsf(@"asf\interlude\", "die-冰.asf");
+                    if (FrozenDie == null) FrozenDie = Utils.GetAsf(@"asf/interlude/", "die-冰.asf");
                     Texture = FrozenDie;
                     CurrentDirection = 0;
                     _notAddBody = true;
                 }
                 else if (IsPoisoned && _isPoisionVisualEffect)
                 {
-                    if (PoisonDie == null) PoisonDie = Utils.GetAsf(@"asf\interlude\", "die-毒.asf");
+                    if (PoisonDie == null) PoisonDie = Utils.GetAsf(@"asf/interlude/", "die-毒.asf");
                     Texture = PoisonDie;
                     CurrentDirection = 0;
                     _notAddBody = true;
                 }
                 else if (IsPetrified && _isPetrifiedVisualEffect)
                 {
-                    if (PetrifiedDie == null) PetrifiedDie = Utils.GetAsf(@"asf\interlude\", "die-石.asf");
+                    if (PetrifiedDie == null) PetrifiedDie = Utils.GetAsf(@"asf/interlude/", "die-石.asf");
                     Texture = PetrifiedDie;
                     CurrentDirection = 0;
                     _notAddBody = true;
@@ -4346,7 +4345,7 @@ namespace Engine
         {
             if (string.IsNullOrEmpty(fileName)) return;
             _npcIniFileName = fileName;
-            NpcIni = ResFile.ReadFile(@"ini\npcres\" + fileName, ResType.Npc);
+            NpcIni = ResFile.ReadFile(Utils.FixPath(@"ini/npcres/" + fileName), ResType.Npc);
         }
 
         /// <summary>

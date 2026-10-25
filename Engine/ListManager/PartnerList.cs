@@ -8,7 +8,7 @@ namespace Engine.ListManager
     public static class PartnerList
     {
         private static readonly Dictionary<int, string> _list = new Dictionary<int, string>();
-        private const string ListFilePath = @"Content\PartnerIdx.ini";
+        private const string ListFilePath = @"Content/PartnerIdx.ini";
 
         /// <summary>
         /// Load from file.
@@ -19,7 +19,7 @@ namespace Engine.ListManager
             try
             {
                 var parser = new FileIniDataParser();
-                var data = parser.ReadFile(ListFilePath, Globals.LocalEncoding);
+                var data = parser.ReadFile(Utils.FixPath(ListFilePath), Globals.LocalEncoding);
                 var section = Utils.GetFirstSection(data);
                 foreach (var keyData in section)
                 {

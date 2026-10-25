@@ -29,7 +29,7 @@ namespace Engine.Gui
                 {
                     fileName = "panel7" + (char)('a' + value) + ".asf";
                 }
-                BaseTexture = new Texture(Utils.GetAsf(@"asf\ui\common\", fileName));
+                BaseTexture = new Texture(Utils.GetAsf(@"asf/ui/common/", fileName));
             }
         }
 

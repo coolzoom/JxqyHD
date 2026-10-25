@@ -139,7 +139,7 @@ namespace Engine
                     _xiuLianMagic.TheMagic.AttackFile != null &&
                     !string.IsNullOrEmpty(_xiuLianMagic.TheMagic.ActionFile))
                 {
-                    asf = Utils.GetAsf(@"asf\character\",
+                    asf = Utils.GetAsf(@"asf/character/",
                         _xiuLianMagic.TheMagic.ActionFile + NpcIniIndex + ".asf");
                 }
                 SpecialAttackTexture = asf;
@@ -614,7 +614,7 @@ namespace Engine
             }
             var index = Globals.ThePlayer.CurrentUseMagicIndex;
             var magics =  list == "无" ? new List<string>() : ParseMagicListNoDistance(list);
-            var path = StorageBase.SaveGameDirectory + @"\" + Name + "_" + reasonMagic.Name + "_" + string.Join("_", magics) + ".ini";
+            var path = StorageBase.SaveGameDirectory + @"/" + Name + "_" + reasonMagic.Name + "_" + string.Join("_", magics) + ".ini";
             MagicListManager.ReplaceListTo(path, magics);
             Globals.ThePlayer.CurrentUseMagicIndex = index;
             Globals.ThePlayer.XiuLianMagic = MagicListManager.GetItemInfo(
@@ -1552,6 +1552,7 @@ namespace Engine
                 spriteBatch.End();
                 var alphaTestEffect = Globals.TheGame.AlphaTestEffect;
                 alphaTestEffect.Parameters["MinAlpha"].SetValue(0.0f);
+                JxqyGame.SetSpriteEffectTransform(alphaTestEffect);
                 spriteBatch.Begin(SpriteSortMode.Immediate, NoWriteColorBlendState, null, StencilStateMask, null, alphaTestEffect);
 
                 for (var y = (int)start.Y; y < (int)end.Y; y++)
@@ -1616,12 +1617,14 @@ namespace Engine
                     {
                         useGrayScale = true;
                     }
+                    if (useGrayScale) JxqyGame.SetSpriteEffectTransform(Globals.TheGame.GrayScaleEffect);
                     spriteBatch.Begin(SpriteSortMode.Immediate, null, null, StencilStateDrawOpaque, null, useGrayScale ? Globals.TheGame.GrayScaleEffect : null);
                     base.Draw(spriteBatch, texture, useGrayScale ? Color.White : drawColor);
                     spriteBatch.End();
                     var halfTransparentEffect = Globals.TheGame.TransparentEffect;
                     halfTransparentEffect.Parameters["alpha"].SetValue(0.5f);
                     halfTransparentEffect.Parameters["useGrayScale"].SetValue(useGrayScale ? 1 : 0);
+                    JxqyGame.SetSpriteEffectTransform(halfTransparentEffect);
                     spriteBatch.Begin(SpriteSortMode.Immediate, null, null, StencilStateDrawHalfTransparent, null, halfTransparentEffect);
                     base.Draw(spriteBatch, texture, useGrayScale ? Color.White : DrawColor);
                     spriteBatch.End();

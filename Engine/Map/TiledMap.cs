@@ -33,6 +33,7 @@ namespace Engine.Map
         private const string ObstacleName = "O";
 
         private TmxMap _tmxMap;
+        private string _mapDir = "";
         private Dictionary<string, Texture2D> _allTextures = new Dictionary<string, Texture2D>();
         private int _tileTextureCounts;
         private Dictionary<int,TileTextureInfo> _tileTextureInfos;
@@ -192,7 +193,18 @@ namespace Engine.Map
         {
             FreeInternal();
 
-            _tmxMap = new TmxMap(mapFilePath);
+            _mapDir = Path.GetDirectoryName(Utils.FixPath(mapFilePath)) ?? "";
+            // TiledSharp 1.0.1 int.Parses every comma-separated token; legacy .tmx
+            // files have a trailing comma (empty token) before </data>. Strip empty
+            // tokens from csv layers and load through a stream.
+            var xml = File.ReadAllText(Utils.FixPath(mapFilePath));
+            xml = System.Text.RegularExpressions.Regex.Replace(xml,
+                "(<data\\s[^>]*encoding=\"csv\"[^>]*>)(.*?)</data>",
+                m => m.Groups[1].Value +
+                     string.Join(",", m.Groups[2].Value.Split(',').Select(s => s.Trim()).Where(s => s.Length > 0)) +
+                     "</data>",
+                System.Text.RegularExpressions.RegexOptions.Singleline);
+            _tmxMap = new TmxMap(new MemoryStream(Encoding.UTF8.GetBytes(xml)));
 
             _mapColumnCounts = _tmxMap.Width;
             _mapRowCounts = _tmxMap.Height;
@@ -203,8 +215,16 @@ namespace Engine.Map
             LoadAllTileTextureInfos();
             LoadMapLayers();
             FixError();
-
             return true;
+        }
+
+        private Texture2D LoadTilesetTexture(string source)
+        {
+            // Tileset image sources are relative to the .tmx file directory.
+            var path = Utils.FixPath(source);
+            if (!string.IsNullOrEmpty(_mapDir) && !Path.IsPathRooted(path))
+                path = Path.Combine(_mapDir, path);
+            return Utils.LoadTexture2DFromFile(path);
         }
 
         private void LoadAllTexturesAndComputeTileTextureCount()
@@ -215,13 +235,13 @@ namespace Engine.Map
                 if (tileset.TileCount != null) _tileTextureCounts += tileset.TileCount.Value;
                 if (!string.IsNullOrEmpty(tileset.Image.Source))
                 {
-                    _allTextures[tileset.Image.Source] = Utils.LoadTexture2DFromFile(tileset.Image.Source);
+                    _allTextures[tileset.Image.Source] = LoadTilesetTexture(tileset.Image.Source);
                 }
-                foreach (var tile in tileset.Tiles)
+                foreach (var tile in tileset.Tiles.Values)
                 {
                     if (!string.IsNullOrEmpty(tile.Image.Source))
                     {
-                        _allTextures[tile.Image.Source] = Utils.LoadTexture2DFromFile(tile.Image.Source);
+                        _allTextures[tile.Image.Source] = LoadTilesetTexture(tile.Image.Source);
                     }
                 }
             }
@@ -237,7 +257,7 @@ namespace Engine.Map
                 {
                     case TrapName:
                         {
-                            foreach (var tile in tileset.Tiles)
+                            foreach (var tile in tileset.Tiles.Values)
                             {
                                 _trapGidToIndex[firstGid + tile.Id] = int.Parse(Path.GetFileNameWithoutExtension(tile.Image.Source));
                             }
@@ -246,7 +266,7 @@ namespace Engine.Map
                         }
                     case ObstacleName:
                         {
-                            foreach (var tile in tileset.Tiles)
+                            foreach (var tile in tileset.Tiles.Values)
                             {
                                 switch (Path.GetFileNameWithoutExtension(tile.Image.Source))
                                 {
@@ -270,7 +290,7 @@ namespace Engine.Map
 
                 if (string.IsNullOrEmpty(tileset.Image.Source))
                 {
-                    foreach (var tile in tileset.Tiles)
+                    foreach (var tile in tileset.Tiles.Values)
                     {
                         var info = new TileTextureInfo();
                         _tileTextureInfos[firstGid + tile.Id] = info;

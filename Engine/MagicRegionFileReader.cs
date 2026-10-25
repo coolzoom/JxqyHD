@@ -41,7 +41,7 @@ namespace Engine
         {
             try
             {
-                using (var reader = File.OpenText(filePath))
+                using (var reader = File.OpenText(Utils.FixPath(filePath)))
                 {
                     return Load((JObject)JToken.ReadFrom(new JsonTextReader(reader)));
                 }

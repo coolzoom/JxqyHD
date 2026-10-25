@@ -113,14 +113,14 @@ namespace Engine.Gui
                     data = parser.Parse(str);
                 } else
                 {
-                    var path = @"save\game\" + listFileName;
-                    if (!File.Exists(path))
+                    var path = @"save/game/" + listFileName;
+                    if (!File.Exists( Utils.FixPath(path)))
                     {
-                        path = @"ini\buy\" + listFileName;
+                        path = @"ini/buy/" + listFileName;
                     }
 
                     var parser = new FileIniDataParser();
-                    data = parser.ReadFile(path, Globals.LocalEncoding);
+                    data = parser.ReadFile(Utils.FixPath(path), Globals.LocalEncoding);
                 }
                
                 _goodTypeCountAtStart = _goodTypeCount = int.Parse(data["Header"]["Count"]);
@@ -182,7 +182,7 @@ namespace Engine.Gui
                         _target.BuyIniString = Utils.Base64Encode(data.ToString());
                     } else
                     {
-                        File.WriteAllText(@"save\game\" + _fileName, data.ToString(), Globals.LocalEncoding);
+                        File.WriteAllText( Utils.FixPath(@"save/game/" + _fileName), data.ToString(), Globals.LocalEncoding);
                     }
                 }
             }

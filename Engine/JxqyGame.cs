@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Globalization;
 using System.Linq;
-using System.Windows.Forms;
 using Engine.Benchmark;
 using Engine.Gui;
 using Engine.ListManager;
 using Engine.Map;
 using Engine.Script;
 using Engine.Weather;
+using System.IO;
 using IniParser;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -21,6 +21,8 @@ namespace Engine
     /// </summary>
     public class JxqyGame : Game
     {
+        public const string ContentRootDir = "Content";
+
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
         private Effect _waterEffect;
@@ -28,6 +30,9 @@ namespace Engine
         private RenderTarget2D _renderTarget;
         private RenderTarget2D _snapShotRenderTarget;
         private bool _isInSnapShot;
+        private int _shotCount;
+        private static int _shotFrame =
+            int.TryParse(Environment.GetEnvironmentVariable("JXQY_SHOT"), out var sf) ? sf : 0;
 
         private double _totalInactivedSeconds;
         private const double MaxInactivedSeconds = 1.0;
@@ -42,11 +47,6 @@ namespace Engine
         #endregion
 
         private readonly Color BackgroundColor = Color.Black;
-
-        IntPtr _drawSurface;
-        Form _parentForm;
-        PictureBox _pictureBox;
-        Control _gameForm;
 
         //Magic kind 23: stop world time
         public MagicSprite TimeStoperMagicSprite;
@@ -79,49 +79,19 @@ namespace Engine
         public JxqyGame()
         {
             _graphics = new GraphicsDeviceManager(this);
-            Content.RootDirectory = "Content";
+            // Content lives next to the game data (e.g. the Data folder) in the
+            // current working directory, not next to the executable.
+            Content.RootDirectory = Path.GetFullPath(ContentRootDir);
             IsMouseVisible = false;
             _graphics.IsFullScreen = false;
             _graphics.PreferredDepthStencilFormat = DepthFormat.Depth24Stencil8;
             GameState.State = GameState.StateType.Start;
         }
 
-        public JxqyGame(IntPtr drawSurface, Form parentForm, PictureBox surfacePictureBox)
+        public JxqyGame(bool isEditMode)
             : this()
         {
-            IsInEditMode = true;
-            _drawSurface = drawSurface;
-            _parentForm = parentForm;
-            _pictureBox = surfacePictureBox;
-
-            _graphics.PreparingDeviceSettings += graphics_PreparingDeviceSettings;
-            Mouse.WindowHandle = drawSurface;
-
-            _gameForm = Control.FromHandle(Window.Handle);
-            _gameForm.VisibleChanged += gameForm_VisibleChanged;
-            _pictureBox.SizeChanged += pictureBox_SizeChanged;
-        }
-
-        public void AdjustDrawSizeToDrawSurfaceSize()
-        {
-            if (_parentForm.WindowState != FormWindowState.Minimized)
-            {
-                _graphics.PreferredBackBufferWidth = _pictureBox.Width;
-                _graphics.PreferredBackBufferHeight = _pictureBox.Height;
-                Globals.WindowWidth =
-                    Globals.TheCarmera.ViewWidth =
-                    MapBase.ViewWidth =
-                    _pictureBox.Width;
-                Globals.WindowHeight =
-                    Globals.TheCarmera.ViewHeight =
-                    MapBase.ViewHeight =
-                    _pictureBox.Height;
-                _graphics.ApplyChanges();
-
-                ReCreateRenderTarget();
-
-                GuiManager.Adjust(_pictureBox.Width, _pictureBox.Height);
-            }
+            IsInEditMode = isEditMode;
         }
 
         /// <summary>
@@ -142,31 +112,6 @@ namespace Engine
             _isInactivedReachMaxInterval = (_totalInactivedSeconds >= MaxInactivedSeconds);
         }
 
-        private void pictureBox_SizeChanged(object sender, EventArgs e)
-        {
-            AdjustDrawSizeToDrawSurfaceSize();
-        }
-
-        private void gameForm_VisibleChanged(object sender, EventArgs e)
-        {
-            if (_gameForm.Visible)
-            {
-                _gameForm.Visible = false;
-
-                //Didn't no why, below solved fps slow than normal
-                _parentForm.Visible = false;
-                _parentForm.WindowState = FormWindowState.Minimized;
-                _parentForm.WindowState = FormWindowState.Normal;
-                _parentForm.Visible = true;
-            }
-        }
-
-        private void graphics_PreparingDeviceSettings(object sender, PreparingDeviceSettingsEventArgs e)
-        {
-            e.GraphicsDeviceInformation.PresentationParameters.
-                DeviceWindowHandle = _drawSurface;
-        }
-
         #region Utils
 
         public static void BeginSpriteBatch(SpriteBatch spriteBatch)
@@ -176,6 +121,7 @@ namespace Engine
 
         public static void BeginSpriteBatch(SpriteBatch spriteBatch, Effect effect)
         {
+            SetSpriteEffectTransform(effect);
             spriteBatch.Begin(SpriteSortMode.Deferred,
                 null,
                 null,
@@ -184,15 +130,35 @@ namespace Engine
                 effect);
         }
 
+        /// <summary>
+        /// Supply the projection matrix expected by the custom .mgfxo sprite
+        /// shaders (they all expose a MatrixTransform float4x4 parameter).
+        /// </summary>
+        public static void SetSpriteEffectTransform(Effect effect)
+        {
+            var parameter = effect?.Parameters["MatrixTransform"];
+            if (parameter == null) return;
+            var vp = Globals.TheGame.GraphicsDevice.Viewport;
+            parameter.SetValue(Matrix.CreateOrthographicOffCenter(0, vp.Width, vp.Height, 0, 0, -1));
+        }
+
+        private static Effect LoadEffectFile(string name)
+        {
+            var path = Utils.FixPath(Path.Combine(ContentRootDir, "effect", name + ".mgfxo"));
+            var bytes = File.ReadAllBytes(path);
+            var effect = new Effect(Globals.TheGame.GraphicsDevice, bytes);
+            return effect;
+        }
+
         private void LoadEffect()
         {
-            _waterEffect = Content.Load<Effect>(@"effect\refraction");
-            _waterfallTexture = Content.Load<Texture2D>(@"effect\waterfall");
+            _waterEffect = LoadEffectFile("refraction");
+            _waterfallTexture = Utils.LoadTexture2DFromFile(Path.Combine(ContentRootDir, "effect", "waterfall.jpg"));
 
-            GrayScaleEffect = Content.Load<Effect>(@"effect\grayscale");
-            OutEdgeEffect = Content.Load<Effect>(@"effect\outedge");
-            TransparentEffect = Content.Load<Effect>(@"effect\Transparent");
-            AlphaTestEffect = Content.Load<Effect>(@"effect\AlphaTest");
+            GrayScaleEffect = LoadEffectFile("grayscale");
+            OutEdgeEffect = LoadEffectFile("outedge");
+            TransparentEffect = LoadEffectFile("Transparent");
+            AlphaTestEffect = LoadEffectFile("AlphaTest");
         }
 
         private void WaterEffectBegin()
@@ -216,7 +182,7 @@ namespace Engine
             // Set the displacement texture.
             GraphicsDevice.SamplerStates[1] = SamplerState.LinearClamp;
             _graphics.GraphicsDevice.Textures[1] = _waterfallTexture;
-
+            SetSpriteEffectTransform(_waterEffect);
                 _spriteBatch.Begin(SpriteSortMode.Deferred,
                     null,
                     null,
@@ -351,6 +317,8 @@ namespace Engine
         protected override void Initialize()
         {
             Log.Initialize();
+            if (Environment.GetEnvironmentVariable("JXQY_LOG") == "1")
+                Log.LogToFileOn = true;
             Globals.TheGame = this;
 
             if (_graphics.GraphicsDevice.Adapter.IsProfileSupported(GraphicsProfile.HiDef))
@@ -364,6 +332,7 @@ namespace Engine
             }
 
             Globals.LoadSetting();
+            Engine.Storage.StorageBase.EnsureSaveDirectories();
             TalkTextList.Initialize();
 
             Log.LogMessage("Game is running...");
@@ -372,6 +341,7 @@ namespace Engine
             {
                 //Can't full screen in edit mode
                 _graphics.IsFullScreen = false;
+                EditServer.Start();
             }
             else
             {
@@ -390,13 +360,6 @@ namespace Engine
             Globals.TheCarmera.ViewHeight = _graphics.PreferredBackBufferHeight;
             MapBase.ViewWidth = _graphics.PreferredBackBufferWidth;
             MapBase.ViewHeight = _graphics.PreferredBackBufferHeight;
-
-            //Game run in editor
-            if (_parentForm != null)
-            {
-                //Make draw size correct
-                AdjustDrawSizeToDrawSurfaceSize();
-            }
 
             base.Initialize();
         }
@@ -426,9 +389,9 @@ namespace Engine
             _spriteBatch = new SpriteBatch(GraphicsDevice);
             LoadEffect();
             ReCreateRenderTarget();
-            Globals.FontSize7 = Content.Load<SpriteFont>(@"font\ASCII_Verdana_7_Bold");
-            Globals.FontSize10 = Content.Load<SpriteFont>(@"font\GB2312_ASCII_迷你简细圆_10");
-            Globals.FontSize12 = Content.Load<SpriteFont>(@"font\GB2312_ASCII_迷你简细圆_12");
+            Globals.FontSize7 = Content.Load<SpriteFont>(@"font/ASCII_Verdana_7_Bold");
+            Globals.FontSize10 = Content.Load<SpriteFont>(@"font/GB2312_ASCII_迷你简细圆_10");
+            Globals.FontSize12 = Content.Load<SpriteFont>(@"font/GB2312_ASCII_迷你简细圆_12");
 
             //Load partner name list
             PartnerList.Load();
@@ -462,6 +425,8 @@ namespace Engine
             {
                 //Update mouse scroll state.
                 MouseScrollHandler.Update();
+
+                EditServer.Instance?.Pump();
 
                 UpdateGameActiveState(gameTime);
 
@@ -606,6 +571,28 @@ namespace Engine
             _spriteBatch.End();
 
             base.Draw(gameTime);
+
+            // Debug: JXQY_SHOT=<frame> saves a PNG of the frame and exits.
+            if (_shotFrame > 0 && gameTime.TotalGameTime.Ticks > 0)
+            {
+                _shotCount++;
+                if (_shotCount >= _shotFrame)
+                {
+                    _shotFrame = 0;
+                    try
+                    {
+                        var snap = TakeSnapShot();
+                        using (var fs = File.Create("jxqy_shot.png"))
+                            snap.SaveAsPng(fs, snap.Width, snap.Height);
+                        Console.WriteLine("[JXQY_SHOT] saved jxqy_shot.png");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("[JXQY_SHOT] failed: " + ex);
+                    }
+                    Exit();
+                }
+            }
         }
 
         /// <summary>
@@ -666,7 +653,7 @@ namespace Engine
         {
             GameState.State = GameState.StateType.EndAds;
             GuiManager.IsShow = false;
-            var data = new FileIniDataParser().ReadFile("img/show.ini", Globals.LocalEncoding);
+            var data = new FileIniDataParser().ReadFile(Utils.FixPath("img/show.ini"), Globals.LocalEncoding);
             var index = Globals.TheRandom.Next(1, int.Parse(data.Sections["Init"]["Count"])+1);
             if (!data.Sections["Init"].ContainsKey(index.ToString())) index = 1;
             _adPic = Utils.LoadTexture2DFromFile("img/" + data.Sections["Init"][index.ToString()]);

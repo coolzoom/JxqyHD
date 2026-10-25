@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Windows.Forms;
 
 namespace Engine.Script
 {
@@ -26,7 +25,7 @@ namespace Engine.Script
 
         public ScriptParser(string filePath)
         {
-            ReadFile(filePath);
+            ReadFile( Utils.FixPath(filePath));
         }
 
         private static readonly Regex RegGoto = new Regex(@"^@([a-zA-Z0-9]+):");
@@ -136,7 +135,7 @@ namespace Engine.Script
             try
             {
                 FileName = Path.GetFileName(filePath);
-                ReadFromLines(File.ReadAllLines(filePath, Globals.LocalEncoding));
+                ReadFromLines(File.ReadAllLines( Utils.FixPath(filePath), Globals.LocalEncoding));
             }
             catch (Exception exception)
             {

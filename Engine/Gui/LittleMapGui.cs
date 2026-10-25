@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using Engine.Gui.Base;
 using Engine.Map;
 using IniParser;
@@ -47,7 +46,7 @@ namespace Engine.Gui
                 {
                     _messageTip.IsShow = false;
                 }
-                if (value)
+                if (value && MapBase.Instance != null)
                 {
                     ViewBeginX = MapBase.Instance.ViewBeginX / Ratio;
                     ViewBeginY = MapBase.Instance.ViewBeginY / Ratio;
@@ -126,7 +125,7 @@ namespace Engine.Gui
         public LittleMapGui()
         {
             var cfg = GuiManager.Setttings.Sections["LittleMap"];
-            BaseTexture = new Texture(Utils.GetAsf(@"asf\ui\littlemap\", "panel.asf"));
+            BaseTexture = new Texture(Utils.GetAsf(@"asf/ui/littlemap/", "panel.asf"));
             Width = BaseTexture.Width;
             Height = BaseTexture.Height;
             Position = new Vector2(
@@ -197,19 +196,19 @@ namespace Engine.Gui
 
         private void LoadTexture()
         {
-            _player = new Texture(Utils.GetAsf(@"asf\ui\littlemap\", "主角坐标.asf"));
-            _enemy = new Texture(Utils.GetAsf(@"asf\ui\littlemap\", "敌人坐标.asf"));
-            _partner = new Texture(Utils.GetAsf(@"asf\ui\littlemap\", "同伴坐标.asf"));
-            _neutral = new Texture(Utils.GetAsf(@"asf\ui\littlemap\", "路人坐标.asf"));
+            _player = new Texture(Utils.GetAsf(@"asf/ui/littlemap/", "主角坐标.asf"));
+            _enemy = new Texture(Utils.GetAsf(@"asf/ui/littlemap/", "敌人坐标.asf"));
+            _partner = new Texture(Utils.GetAsf(@"asf/ui/littlemap/", "同伴坐标.asf"));
+            _neutral = new Texture(Utils.GetAsf(@"asf/ui/littlemap/", "路人坐标.asf"));
         }
 
         private void LoadNameList()
         {
-            const string filePath = @"ini\map\mapname.ini";
+            const string filePath = @"ini/map/mapname.ini";
+            _showNameDictionary = new Dictionary<string, string>();
             try
             {
-                _showNameDictionary = new Dictionary<string, string>();
-                var data = new FileIniDataParser().ReadFile(filePath, Globals.LocalEncoding);
+                var data = new FileIniDataParser().ReadFile(Utils.FixPath(filePath), Globals.LocalEncoding);
                 var section = Utils.GetFirstSection(data);
                 foreach (var keyData in section)
                 {
@@ -419,7 +418,8 @@ namespace Engine.Gui
             _partner.Update(gameTime);
             _neutral.Update(gameTime);
 
-            if (_showNameDictionary.ContainsKey(MapBase.MapFileNameWithoutExtension))
+            if (MapBase.MapFileNameWithoutExtension != null &&
+                _showNameDictionary.ContainsKey(MapBase.MapFileNameWithoutExtension))
             {
                 _mapName.Text = _showNameDictionary[MapBase.MapFileNameWithoutExtension];
             }

@@ -1359,10 +1359,10 @@ namespace Engine
                         break;
                     case "Image":
                     case "Icon":
-                        info.SetValue(this, Utils.GetAsf(@"asf\magic\", nameValue[1]), null);
+                        info.SetValue(this, Utils.GetAsf(@"asf/magic/", nameValue[1]), null);
                         break;
                     case "NpcIni":
-                        NpcIni = ResFile.ReadFile(@"ini\npcres\" + nameValue[1], ResType.Npc);
+                        NpcIni = ResFile.ReadFile(Utils.FixPath(@"ini/npcres/" + nameValue[1]), ResType.Npc);
                         break;
                     case "FlyingImage":
                     case "VanishImage":
@@ -1370,11 +1370,11 @@ namespace Engine
                     case "LeapImage":
                     case "HitCountFlyingImage":
                     case "HitCountVanishImage":
-                        info.SetValue(this, Utils.GetAsf(@"asf\effect\", nameValue[1]), null);
+                        info.SetValue(this, Utils.GetAsf(@"asf/effect/", nameValue[1]), null);
                         break;
                     case "AttackFile":
-                        if (File.Exists(@"ini\magic\" + nameValue[1]) && !noAttackFile)
-                            info.SetValue(this, new Magic(@"ini\magic\" + nameValue[1], true, true), null);
+                        if (File.Exists( Utils.FixPath(@"ini/magic/" + nameValue[1])) && !noAttackFile)
+                            info.SetValue(this, new Magic(@"ini/magic/" + nameValue[1], true, true), null);
                         break;
                     case "FlyingSound":
                     case "VanishSound":
@@ -1394,13 +1394,13 @@ namespace Engine
                     case "RegionFile":
                         if (!string.IsNullOrEmpty(nameValue[1]))
                         {
-                            info.SetValue(this, MagicRegionFileReader.Load(@"ini\magic\" + nameValue[1]), null);
+                            info.SetValue(this, MagicRegionFileReader.Load(@"ini/magic/" + nameValue[1]), null);
                         }
                         break;
                     case "UseActionFile":
                         if (!string.IsNullOrEmpty(nameValue[1]))
                         {
-                            info.SetValue(this, Utils.GetAsf(@"asf\character\", nameValue[1]), null);
+                            info.SetValue(this, Utils.GetAsf(@"asf/character/", nameValue[1]), null);
                         }
                         break;
                     case "GoodsName":
@@ -1424,7 +1424,7 @@ namespace Engine
             try
             {
                 FileName = Path.GetFileName(filePath);
-                return Load(File.ReadAllLines(filePath, Globals.LocalEncoding),
+                return Load(File.ReadAllLines( Utils.FixPath(filePath), Globals.LocalEncoding),
                     noLevel, noAttackFile);
             }
             catch (Exception ecxeption)

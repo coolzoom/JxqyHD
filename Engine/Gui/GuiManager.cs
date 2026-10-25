@@ -69,7 +69,7 @@ namespace Engine.Gui
 
         public static void Starting()
         {
-            Setttings = new FileIniDataParser().ReadFile(@"Content\ui\UI_Settings.ini", Globals.LocalEncoding);
+            Setttings = new FileIniDataParser().ReadFile(Utils.FixPath(@"Content/ui/UI_Settings.ini"), Globals.LocalEncoding);
 
             GoodsListManager.InitIndex(Setttings);
             MagicListManager.InitIndex(Setttings);

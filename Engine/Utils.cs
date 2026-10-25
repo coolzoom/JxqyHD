@@ -18,6 +18,15 @@ namespace Engine
 {
     static public class Utils
     {
+        /// <summary>
+        /// Normalize a data-relative path for the host filesystem.
+        /// Resource names in ini/script files use Windows '\' separators.
+        /// </summary>
+        public static string FixPath(string path)
+        {
+            return string.IsNullOrEmpty(path) ? path : path.Replace('\\', '/');
+        }
+
         public static Dictionary<string, Asf> AsfFiles = new Dictionary<string, Asf>();
         public static Dictionary<KeyValuePair<string, string>, Mpc> MpcFiles = new Dictionary<KeyValuePair<string, string>, Mpc>();
         public static Dictionary<string, Magic> Magics = new Dictionary<string, Magic>();
@@ -74,7 +83,7 @@ namespace Engine
         {
             try
             {
-                using (var stream = new FileStream(filePath, FileMode.Open))
+                using (var stream = new FileStream( Utils.FixPath(filePath), FileMode.Open))
                 {
                     var texture = Texture2D.FromStream(Globals.TheGame.GraphicsDevice, stream);
                     var data = new Color[texture.Width * texture.Height];
@@ -101,8 +110,8 @@ namespace Engine
             if (string.IsNullOrEmpty(fileName)) return null;
             try
             {
-                var path = string.IsNullOrEmpty(basePath) ? fileName : Path.Combine(basePath, fileName);
-                if (!string.IsNullOrEmpty(path) && path[0] == '\\')
+                var path = FixPath(string.IsNullOrEmpty(basePath) ? fileName : Path.Combine(FixPath(basePath), FixPath(fileName)));
+                if (!string.IsNullOrEmpty(path) && path[0] == '/')
                 {
                     path = path.Substring(1);
                 }
@@ -133,8 +142,8 @@ namespace Engine
             if (string.IsNullOrEmpty(fileName)) return null;
             try
             {
-                var path = string.IsNullOrEmpty(basePath) ? fileName : Path.Combine(basePath, fileName);
-                var pair = new KeyValuePair<string, string>(path, shdFileName);
+                var path = FixPath(string.IsNullOrEmpty(basePath) ? fileName : Path.Combine(FixPath(basePath), FixPath(fileName)));
+                var pair = new KeyValuePair<string, string>(path, FixPath(shdFileName));
                 if (MpcFiles.ContainsKey(pair))
                     return MpcFiles[pair];
                 else
@@ -174,7 +183,7 @@ namespace Engine
             if (string.IsNullOrEmpty(wavFileName)) return null;
             try
             {
-                var path = @"sound\" + Path.GetFileNameWithoutExtension(wavFileName);
+                var path = @"sound/" + Path.GetFileNameWithoutExtension(wavFileName);
                 return Globals.TheGame.Content.Load<SoundEffect>(path);
             }
             catch (Exception)
@@ -188,7 +197,7 @@ namespace Engine
             if (string.IsNullOrEmpty(fileName)) return null;
             try
             {
-                var path = @"video\" + Path.GetFileNameWithoutExtension(fileName);
+                var path = @"video/" + Path.GetFileNameWithoutExtension(fileName);
                 return Globals.TheGame.Content.Load<Video>(path);
             }
             catch (Exception exception)
@@ -209,7 +218,7 @@ namespace Engine
             if (string.IsNullOrEmpty(fileName)) return null;
             try
             {
-                var filePath = @"ini\magic\" + fileName;
+                var filePath = @"ini/magic/" + fileName;
                 if (shared && Magics.ContainsKey(filePath))
                     return Magics[filePath];
                 else
@@ -237,12 +246,12 @@ namespace Engine
                 var filePathGame = Path.Combine(StorageBase.SaveGameDirectory, fileName);
                 if (Goods.ContainsKey(filePathGame))
                     return Goods[filePathGame];
-                var filePath = @"ini\goods\" + fileName;
+                var filePath = @"ini/goods/" + fileName;
                 if (Goods.ContainsKey(filePath))
                     return Goods[filePath];
 
                 var path = "";
-                if (File.Exists(filePathGame))
+                if (File.Exists( Utils.FixPath(filePathGame)))
                 {
                     path = filePathGame;
                 }
@@ -286,7 +295,7 @@ namespace Engine
             new Dictionary<int, Dictionary<int, LevelDetail>>();
         public static Dictionary<int, LevelDetail> GetLevelLists(string filePath)
         {
-            if (!File.Exists(filePath)) return null;
+            if (!File.Exists( Utils.FixPath(filePath))) return null;
 
             var hashCode = filePath.GetHashCode();
             if (LevelList.ContainsKey(hashCode))
@@ -295,7 +304,7 @@ namespace Engine
 
             try
             {
-                var lines = File.ReadAllLines(filePath, Globals.LocalEncoding);
+                var lines = File.ReadAllLines( Utils.FixPath(filePath), Globals.LocalEncoding);
                 var counts = lines.Length;
                 for (var i = 0; i < counts; )
                 {
@@ -483,15 +492,15 @@ namespace Engine
                 {
                     if (string.IsNullOrEmpty(mapName))
                         mapName = MapBase.MapFileNameWithoutExtension;
-                    var path = @"script\map\" + mapName + @"\" + fileName;
-                    if (!File.Exists(path))
+                    var path = @"script/map/" + mapName + @"/" + fileName;
+                    if (!File.Exists( Utils.FixPath(path)))
                     {
-                        return @"script\common\" + fileName;
+                        return @"script/common/" + fileName;
                     }
                     return path;
                 }
                 case ScriptCategory.Good:
-                    return @"script\goods\" + fileName;
+                    return @"script/goods/" + fileName;
                 default:
                     throw new ArgumentOutOfRangeException("category");
             }
@@ -523,7 +532,7 @@ namespace Engine
         {
             if (!Globals.TheGame.IsInEditMode ||
                 (_scriptFileLastWriteTime.ContainsKey(filePath) &&
-                 _scriptFileLastWriteTime[filePath].Equals(File.GetLastWriteTime(filePath))))
+                 _scriptFileLastWriteTime[filePath].Equals(File.GetLastWriteTime( Utils.FixPath(filePath)))))
             {
                 //Use cached script parser:
                 // *In play mode or
@@ -538,7 +547,7 @@ namespace Engine
                 try
                 {
                     // Update last write time
-                    _scriptFileLastWriteTime[filePath] = File.GetLastWriteTime(filePath);
+                    _scriptFileLastWriteTime[filePath] = File.GetLastWriteTime( Utils.FixPath(filePath));
                 }
                 catch (Exception)
                 {
@@ -573,10 +582,10 @@ namespace Engine
         public static string GetNpcObjFilePath(string fileName)
         {
             fileName = fileName == null ? "" : fileName;
-            var path = @"save\game\" + fileName;
-            if (!File.Exists(path))
+            var path = @"save/game/" + fileName;
+            if (!File.Exists( Utils.FixPath(path)))
             {
-                path = @"ini\save\" + fileName;
+                path = @"ini/save/" + fileName;
             }
             return path;
         }
@@ -614,7 +623,7 @@ namespace Engine
         public static List<KeyDataCollection> GetAllKeyDataCollection(string filePath, string sectionNameBegin)
         {
             var list = new List<KeyDataCollection>();
-            var data = new FileIniDataParser().ReadFile(filePath, Globals.LocalEncoding);
+            var data = new FileIniDataParser().ReadFile(Utils.FixPath(filePath), Globals.LocalEncoding);
             var count = int.Parse(data["Head"]["Count"]);
             for (var i = 0; i < count; i++)
             {
@@ -641,10 +650,10 @@ namespace Engine
 
         public static void LoadMagicExpList()
         {
-            const string path = @"ini\level\MagicExp.ini";
+            const string path = @"ini/level/MagicExp.ini";
             try
             {
-                var data = new FileIniDataParser().ReadFile(path, Globals.LocalEncoding);
+                var data = new FileIniDataParser().ReadFile(Utils.FixPath(path), Globals.LocalEncoding);
                 var section = data["Exp"];
                 foreach (var keyData in section)
                 {

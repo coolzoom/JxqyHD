@@ -1,0 +1,39 @@
+#----------------------------- Global Properties ----------------------------#
+
+/outputDir:Content
+/intermediateDir:obj/mgcb
+/platform:DesktopGL
+/profile:Reach
+/compress:False
+
+#---------------------------------- Content ---------------------------------#
+
+#begin ../JxqyContent/effect/refraction.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/build:../JxqyContent/effect/refraction.fx;effect/refraction.xnb
+
+#begin ../JxqyContent/effect/grayscale.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/build:../JxqyContent/effect/grayscale.fx;effect/grayscale.xnb
+
+#begin ../JxqyContent/effect/outedge.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/build:../JxqyContent/effect/outedge.fx;effect/outedge.xnb
+
+#begin ../JxqyContent/effect/Transparent.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/build:../JxqyContent/effect/Transparent.fx;effect/Transparent.xnb
+
+#begin ../JxqyContent/effect/AlphaTest.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/build:../JxqyContent/effect/AlphaTest.fx;effect/AlphaTest.xnb
+
+#begin ../JxqyContent/effect/waterfall.jpg
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:../JxqyContent/effect/waterfall.jpg;effect/waterfall.xnb
