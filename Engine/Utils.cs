@@ -205,17 +205,9 @@ namespace Engine
 
         static public Video GetVideo(string fileName)
         {
-            if (string.IsNullOrEmpty(fileName)) return null;
-            try
-            {
-                var path = @"video/" + Path.GetFileNameWithoutExtension(fileName);
-                return Globals.TheGame.Content.Load<Video>(path);
-            }
-            catch (Exception exception)
-            {
-                Log.LogFileLoadError("Movie", fileName, exception);
-                return null;
-            }
+            // Video is not implemented on DesktopGL; even constructing a Video
+            // crashes later in its finalizer. Skip movies entirely.
+            return null;
         }
 
         /// <summary>
