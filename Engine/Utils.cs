@@ -203,10 +203,19 @@ namespace Engine
             }
         }
 
-        static public Video GetVideo(string fileName)
+        /// <summary>Locate a movie file under Content/video for MoviePlayer.</summary>
+        static public string GetVideoPath(string fileName)
         {
-            // Video is not implemented on DesktopGL; even constructing a Video
-            // crashes later in its finalizer. Skip movies entirely.
+            if (string.IsNullOrEmpty(fileName)) return null;
+            var name = Path.GetFileNameWithoutExtension(fileName);
+            foreach (var dir in new[] { @"Content/video/", @"video/" })
+            {
+                foreach (var ext in new[] { ".wmv", ".mp4", ".avi", ".mkv" })
+                {
+                    var file = FixPath(dir + name + ext);
+                    if (File.Exists(file)) return file;
+                }
+            }
             return null;
         }
 

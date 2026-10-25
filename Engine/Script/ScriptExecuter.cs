@@ -24,8 +24,7 @@ namespace Engine.Script
         private static LinkedList<TalkTextDetail> _talkList; 
         private static float _sleepingMilliseconds;
         private static Color _videoDrawColor;
-        private static Video _video;
-        private static VideoPlayer _videoPlayer;
+        private static MoviePlayer _videoPlayer;
         private static bool _isTimeScriptSet;
         private static int _timeScriptSeconds;
         private static string _timeScriptFileName;
@@ -1355,16 +1354,11 @@ namespace Engine.Script
         {
             try
             {
-                _video = Utils.GetVideo(fileName);
-                if (_video == null) return;
-                // Video.Dispose()/finalizer throws on DesktopGL; suppress it.
-                GC.SuppressFinalize(_video);
-                _videoPlayer = new VideoPlayer();
+                var path = Utils.GetVideoPath(fileName);
+                if (path == null) return;
+                _videoPlayer = MoviePlayer.Play(path);
                 if (_videoPlayer == null) return;
-                GC.SuppressFinalize(_videoPlayer);
                 _videoDrawColor = drawColor;
-
-                _videoPlayer.Play(_video);
             }
             catch (Exception e)
             {
