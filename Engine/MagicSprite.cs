@@ -1276,7 +1276,7 @@ namespace Engine
                 {
                     if (BelongMagic.FollowMouse > 0)
                     {
-                        var mouseState = Mouse.GetState();
+                        var mouseState = Globals.GetMouseState();
                         var mouseScreenPosition = new Vector2(mouseState.X, mouseState.Y);
                         var mouseWorldPosition = Globals.TheCarmera.ToWorldPosition(mouseScreenPosition);
                         var direction = mouseWorldPosition - PositionInWorld;

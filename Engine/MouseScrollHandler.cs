@@ -12,7 +12,7 @@ namespace Engine
 
         public static void Update()
         {
-            var scrollValue = Mouse.GetState().ScrollWheelValue;
+            var scrollValue = Globals.GetMouseState().ScrollWheelValue;
             IsScrollDown = _lastScrollValue > scrollValue;
             IsScrollUp = _lastScrollValue < scrollValue;
             _lastScrollValue = scrollValue;

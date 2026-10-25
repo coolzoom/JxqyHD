@@ -37,9 +37,15 @@ namespace Engine
         private double _totalInactivedSeconds;
         private const double MaxInactivedSeconds = 1.0;
         private bool _isInactivedReachMaxInterval;
-        private bool _pendingResize;
+        private bool _pendingResize = true;
         private const int MinWindowWidth = 800;
         private const int MinWindowHeight = 600;
+
+        //Virtual-resolution scaling: the game always renders at the logical
+        //(ini) size; the final image is scaled letterboxed into the window.
+        private Matrix _viewTransform = Matrix.Identity;
+        public Vector2 ViewScale { get; private set; } = Vector2.One;
+        public Vector2 ViewOffset { get; private set; } = Vector2.Zero;
 
         #region End Ads
 
@@ -191,10 +197,11 @@ namespace Engine
                     null,
                     null,
                     null,
-                    _waterEffect);
+                    _waterEffect,
+                    _viewTransform);
                 _spriteBatch.Draw(_renderTarget, Vector2.Zero, Color.White);
                 _spriteBatch.End();       
-            _spriteBatch.Begin(SpriteSortMode.Deferred, null);
+            _spriteBatch.Begin(SpriteSortMode.Deferred, null, null, null, null, null, _viewTransform);
         }
 
         static Vector2 MoveInCircle(GameTime gameTime, float speed)
@@ -301,7 +308,7 @@ namespace Engine
 
         private void DrawMapPos(SpriteBatch spriteBatch)
         {
-            var mouseState = Mouse.GetState();
+            var mouseState = Globals.GetMouseState();
             var mouseScreenPosition = new Vector2(mouseState.X, mouseState.Y);
             var mouseWorldPosition = Globals.TheCarmera.ToWorldPosition(mouseScreenPosition);
             var mouseTilePosition = MapBase.ToTilePosition(mouseWorldPosition);
@@ -371,30 +378,42 @@ namespace Engine
             base.Initialize();
         }
 
-        /// <summary>Apply a window resize: new backbuffer, view and render target.</summary>
+        /// <summary>
+        /// Recompute the letterbox scale that maps the logical resolution
+        /// (Globals.WindowWidth/Height) into the actual window client area.
+        /// The logical size and render targets never change.
+        /// </summary>
         private void ApplyPendingResize()
         {
             _pendingResize = false;
-            if (_graphics.IsFullScreen) return;
-
-            var w = Math.Max(MinWindowWidth, Window.ClientBounds.Width);
-            var h = Math.Max(MinWindowHeight, Window.ClientBounds.Height);
-            if (_graphics.PreferredBackBufferWidth != w ||
-                _graphics.PreferredBackBufferHeight != h)
+            var cw = Math.Max(MinWindowWidth, Window.ClientBounds.Width);
+            var ch = Math.Max(MinWindowHeight, Window.ClientBounds.Height);
+            if (!_graphics.IsFullScreen &&
+                (_graphics.PreferredBackBufferWidth != cw ||
+                 _graphics.PreferredBackBufferHeight != ch))
             {
-                _graphics.PreferredBackBufferWidth = w;
-                _graphics.PreferredBackBufferHeight = h;
+                _graphics.PreferredBackBufferWidth = cw;
+                _graphics.PreferredBackBufferHeight = ch;
                 _graphics.ApplyChanges();
             }
 
-            Globals.WindowWidth = _graphics.PreferredBackBufferWidth;
-            Globals.WindowHeight = _graphics.PreferredBackBufferHeight;
-            Globals.TheCarmera.ViewWidth = Globals.WindowWidth;
-            Globals.TheCarmera.ViewHeight = Globals.WindowHeight;
-            MapBase.ViewWidth = Globals.WindowWidth;
-            MapBase.ViewHeight = Globals.WindowHeight;
-            ReCreateRenderTarget();
-            Gui.GuiManager.Adjust(Globals.WindowWidth, Globals.WindowHeight);
+            var bw = GraphicsDevice.PresentationParameters.BackBufferWidth;
+            var bh = GraphicsDevice.PresentationParameters.BackBufferHeight;
+            if (_snapShotRenderTarget != null &&
+                (_snapShotRenderTarget.Width != bw || _snapShotRenderTarget.Height != bh))
+            {
+                _snapShotRenderTarget.Dispose();
+                _snapShotRenderTarget = new RenderTarget2D(GraphicsDevice, bw, bh,
+                    false, SurfaceFormat.Color, DepthFormat.Depth24Stencil8);
+            }
+            var scale = Math.Min(bw / (float)Globals.WindowWidth,
+                                 bh / (float)Globals.WindowHeight);
+            ViewScale = new Vector2(scale);
+            ViewOffset = new Vector2(
+                (bw - Globals.WindowWidth * scale) / 2f,
+                (bh - Globals.WindowHeight * scale) / 2f);
+            _viewTransform = Matrix.CreateScale(scale) *
+                Matrix.CreateTranslation(ViewOffset.X, ViewOffset.Y, 0);
         }
 
         private void ReCreateRenderTarget()
@@ -474,7 +493,7 @@ namespace Engine
                     return;
                 }
 
-                var mouseState = Mouse.GetState();
+                var mouseState = Globals.GetMouseState();
                 var keyboardState = Keyboard.GetState();
 
                 //Fullscreen toggle
@@ -570,7 +589,7 @@ namespace Engine
             Fps.Update(gameTime);
 
             GraphicsDevice.Clear(BackgroundColor);
-            _spriteBatch.Begin(SpriteSortMode.Deferred, null);
+            _spriteBatch.Begin(SpriteSortMode.Deferred, null, null, null, null, null, _viewTransform);
             if (ScriptExecuter.IsInPlayingMovie)//Movie
             {
                 ScriptExecuter.DrawVideo(_spriteBatch);

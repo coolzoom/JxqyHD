@@ -8,7 +8,7 @@ namespace Engine.Gui.Base
 {
     public class GuiItem
     {
-        protected MouseState _lastMouseState = Mouse.GetState();
+        protected MouseState _lastMouseState = Globals.GetMouseState();
         private bool _isShow = true;
         private bool _isClicked;
         private bool _isRightClicked;
@@ -131,7 +131,7 @@ namespace Engine.Gui.Base
         public virtual void Update(GameTime gameTime)
         {
             if (!IsShow) return;
-            var mouseState = Mouse.GetState();
+            var mouseState = Globals.GetMouseState();
             if (Globals.IsInputDisabled)
                 mouseState = Utils.GetMouseStateJustPosition(mouseState);
             var screenPosition = new Vector2(mouseState.X, mouseState.Y);

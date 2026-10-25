@@ -9,6 +9,7 @@ using IniParser.Model;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 
 namespace Engine
 {
@@ -110,6 +111,25 @@ namespace Engine
 
         public const string GameIniFilePath = "Jxqy.ini";
         public const string SettingSectionName = "Setting";
+
+        /// <summary>
+        /// Mouse.GetState remapped from window pixels into logical game
+        /// coordinates (inverse of the letterbox view transform).
+        /// </summary>
+        public static MouseState GetMouseState()
+        {
+            var s = Mouse.GetState();
+            var game = TheGame;
+            if (game == null) return s;
+            var scale = game.ViewScale;
+            if (scale.X <= 0 || scale.Y <= 0) return s;
+            var x = (int)((s.X - game.ViewOffset.X) / scale.X);
+            var y = (int)((s.Y - game.ViewOffset.Y) / scale.Y);
+            return new MouseState(x, y, s.ScrollWheelValue,
+                s.LeftButton, s.MiddleButton, s.RightButton,
+                s.XButton1, s.XButton2);
+        }
+
         public static int WindowWidth = 800;
         public static int WindowHeight = 600;
         public static bool IsFullScreen = true;
