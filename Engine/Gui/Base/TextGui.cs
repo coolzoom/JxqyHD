@@ -460,7 +460,7 @@ namespace Engine.Gui.Base
 
         public override void Update(GameTime gameTime)
         {
-            var mouseState = Globals.GetMouseState();
+            var mouseState = Mouse.GetState();
             if (mouseState.LeftButton == ButtonState.Pressed &&
                 _lastMouseState.LeftButton == ButtonState.Released)
             {

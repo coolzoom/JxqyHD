@@ -59,7 +59,7 @@ namespace Engine.Gui
 
         private static bool IsTalkNext()
         {
-            var mouseState = Globals.GetMouseState();
+            var mouseState = Mouse.GetState();
             var keyboardState = Keyboard.GetState();
             return (mouseState.LeftButton == ButtonState.Pressed &&
                     _lastMouseState.LeftButton == ButtonState.Released) ||
@@ -616,7 +616,7 @@ namespace Engine.Gui
         public static void Update(GameTime gameTime)
         {
             var keyboardState = Keyboard.GetState();
-            var mouseState = Globals.GetMouseState();
+            var mouseState = Mouse.GetState();
 
             MouseInterface.Update(gameTime);
             ColumnInterface.Update(gameTime);

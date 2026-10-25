@@ -267,7 +267,7 @@ namespace Engine
 
         private bool MouseInBound()
         {
-            var mouseState = Globals.GetMouseState();
+            var mouseState = Mouse.GetState();
             var region = new Rectangle(0,
                 0,
                 Globals.TheGame.GraphicsDevice.PresentationParameters.BackBufferWidth,
@@ -1181,7 +1181,7 @@ namespace Engine
 
         public override void Update(GameTime gameTime)
         {
-            var mouseState = Globals.GetMouseState();
+            var mouseState = Mouse.GetState();
             var keyboardState = Keyboard.GetState();
             var mouseScreenPosition = new Vector2(mouseState.X, mouseState.Y);
             var mouseWorldPosition = Globals.TheCarmera.ToWorldPosition(mouseScreenPosition);

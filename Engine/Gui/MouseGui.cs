@@ -22,7 +22,7 @@ namespace Engine.Gui
         {
             if(!IsShow) return;
             base.Update(gameTime);
-            var mouseState = Globals.GetMouseState();
+            var mouseState = Mouse.GetState();
             var screenPosition = new Vector2(mouseState.X, mouseState.Y);
             Position = screenPosition;
             var dragTexture = GuiManager.DragDropSourceTexture;
