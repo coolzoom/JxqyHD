@@ -181,9 +181,20 @@ namespace Engine
         static public SoundEffect GetSoundEffect(string wavFileName)
         {
             if (string.IsNullOrEmpty(wavFileName)) return null;
+            var name = Path.GetFileNameWithoutExtension(wavFileName);
+            // Loose files first (sound/*.wav|.ogg) — no content pipeline needed.
+            foreach (var ext in new[] { ".wav", ".ogg" })
+            {
+                var file = FixPath(@"sound/" + name + ext);
+                if (File.Exists(file))
+                {
+                    try { return SoundEffect.FromFile(file); }
+                    catch (Exception) { }
+                }
+            }
             try
             {
-                var path = @"sound/" + Path.GetFileNameWithoutExtension(wavFileName);
+                var path = @"sound/" + name;
                 return Globals.TheGame.Content.Load<SoundEffect>(path);
             }
             catch (Exception)

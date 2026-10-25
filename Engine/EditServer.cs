@@ -167,6 +167,19 @@ namespace Engine
                 case "ping":
                     Broadcast("pong");
                     break;
+                case "beep":
+                {
+                    var snd = Utils.GetSoundEffect(parts.Length > 1 ? parts[1] : "test");
+                    if (snd == null) Broadcast("error sound not found: " + (parts.Length > 1 ? parts[1] : "test"));
+                    else { SoundManager.PlaySoundEffectOnce(snd); Broadcast("beep ok"); }
+                    break;
+                }
+                case "music":
+                {
+                    BackgroundMusic.Play(parts.Length > 1 ? parts[1] : "");
+                    Broadcast("music " + (BackgroundMusic.FileName ?? ""));
+                    break;
+                }
                 case "fullstate":
                     if (player == null) break;
                     player.FullLife();

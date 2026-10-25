@@ -24,8 +24,21 @@ namespace Engine
             }
             try
             {
-                var path = @"music/" + Path.GetFileNameWithoutExtension(fileName);
-                var song = Globals.TheGame.Content.Load<Song>(path);
+                var name = Path.GetFileNameWithoutExtension(fileName);
+                Song song = null;
+                // Loose audio files (music/*.ogg|.mp3|.wav) work without the
+                // content pipeline; fall back to Content.Load for .xnb.
+                foreach (var ext in new[] { ".ogg", ".mp3", ".wav", ".wma" })
+                {
+                    var file = Utils.FixPath(@"music/" + name + ext);
+                    if (File.Exists(file))
+                    {
+                        song = Song.FromUri(name, new Uri(Path.GetFullPath(file)));
+                        break;
+                    }
+                }
+                if (song == null)
+                    song = Globals.TheGame.Content.Load<Song>(@"music/" + name);
                 MediaPlayer.IsRepeating = true;
                 MediaPlayer.Play(song);
             }
